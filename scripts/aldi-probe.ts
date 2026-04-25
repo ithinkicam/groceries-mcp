@@ -1,21 +1,10 @@
 /**
- * Reference probe for iterating on the Aldi scraper.
- *
- * As of April 2026, aldi.us/weekly-specials/weekly-ads no longer renders the
- * ad inline — it shows a "Start Shopping" CTA. This script logs the page's
- * frame topology and any iframes, so you can quickly see whether Aldi has
- * reverted to inline ads or moved to a different pattern.
- *
- * Run with:  npm run build && node --import tsx scripts/aldi-probe.ts
- *
- * Suggested next steps when picking this back up:
- *   1. Open DevTools network panel against aldi.us and click "Start Shopping".
- *      Look for an XHR returning a JSON product list (likely info.aldi.us/api/...).
- *      Fetching that JSON directly is more durable than driving the UI.
- *   2. If no JSON endpoint, drive the click flow with Playwright Inspector
- *      (`PWDEBUG=1 node ...`) and capture the post-click DOM structure.
+ * Aldi probe — dump the full shape of one Items GraphQL response so we can
+ * design the parser. Load page, click Shop Now, capture the first Items
+ * response body, write to /tmp/aldi-items-sample.json.
  */
 import { chromium } from "playwright";
+import { writeFileSync } from "node:fs";
 
 const URL = "https://www.aldi.us/weekly-specials/weekly-ads";
 
@@ -25,20 +14,43 @@ const ctx = await browser.newContext({
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15",
 });
 const page = await ctx.newPage();
+
+let captured: string | null = null;
+page.on("response", async (resp) => {
+  if (captured) return;
+  const url = resp.url();
+  if (!/\/graphql\?operationName=Items\b/.test(url)) return;
+  try {
+    const body = await resp.text();
+    if (body.length > 1000) {
+      captured = body;
+    }
+  } catch {
+    /* ignore */
+  }
+});
+
 await page.goto(URL, { waitUntil: "domcontentloaded", timeout: 45_000 });
 await page.waitForTimeout(8_000);
+const cta = page.locator('a:has-text("Shop Now")').first();
+if ((await cta.count()) > 0) {
+  await cta.click({ timeout: 5_000 });
+  // Wait until we capture an Items response.
+  for (let i = 0; i < 20 && !captured; i++) {
+    await page.waitForTimeout(1_000);
+  }
+}
 
-console.log(`Title: ${await page.title()}`);
-console.log(`Frames (${page.frames().length}):`);
-for (const f of page.frames()) console.log(`  ${f.url() || "(blank)"}`);
-
-const iframes = await page.evaluate(() =>
-  Array.from(document.querySelectorAll("iframe")).map((f) => f.src || "(no src)"),
-);
-console.log(`\nNested iframes (${iframes.length}):`);
-for (const s of iframes) console.log(`  ${s}`);
-
-const bodyTextHead = await page.evaluate(() => document.body.innerText.slice(0, 1500));
-console.log(`\nBody text (first 1500 chars):\n${bodyTextHead}`);
+if (captured) {
+  // Pretty-print the first item only — that's enough to design parsing.
+  const data = JSON.parse(captured);
+  const firstItem = data?.data?.items?.[0];
+  console.log("First item keys:", firstItem ? Object.keys(firstItem) : "(none)");
+  writeFileSync("/tmp/aldi-items-sample.json", JSON.stringify(firstItem, null, 2));
+  console.log("Wrote /tmp/aldi-items-sample.json");
+  console.log(`Total items in this batch: ${data?.data?.items?.length ?? 0}`);
+} else {
+  console.log("No Items response captured.");
+}
 
 await browser.close();

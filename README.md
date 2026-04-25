@@ -100,7 +100,7 @@ Verified live on **2026-04-25**:
 | Store | Method | Status |
 |---|---|---|
 | Publix | iHeartPublix HTML scrape | ✅ Working — 250 items, 1.8s |
-| Aldi | Playwright | ⚠️ Layout changed Apr 2026 (no inline ad). Throws a clear "needs rework" error. See `src/scrapers/aldi.ts` and `scripts/aldi-probe.ts` for next steps. |
+| Aldi | Playwright + GraphQL Items observation | ✅ Working — 178 items, 29s. Drives the "Shop Now" CTA into the catalog and observes the `Items` GraphQL responses as products lazy-load. |
 | Lidl | Playwright + product cards | ✅ Working — ~70 items, 5s |
 | Walmart | Playwright | ⚠️ Akamai bot detection blocks headless. Returns a "blocked" marker rather than throwing, so `get_all_deals` keeps working. |
 
