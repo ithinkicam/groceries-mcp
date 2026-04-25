@@ -1,0 +1,36 @@
+{
+  "name": "groceries-mcp",
+  "version": "0.1.0",
+  "description": "MCP server that returns weekly grocery deals (Publix, Aldi, Lidl, Walmart) for use with Claude. Wraps Playwright + lightweight HTTP scrapers, caches per-week.",
+  "license": "MIT",
+  "author": "Cameron Lewis",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "groceries-mcp": "dist/index.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "start:stdio": "node dist/index.js --transport stdio",
+    "start:http": "node dist/index.js --transport http",
+    "dev": "tsc --watch",
+    "debug:run": "node --import tsx scripts/debug-run.ts",
+    "test": "node --test --import tsx tests/**/*.test.ts",
+    "postinstall": "playwright install chromium",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.18.0",
+    "playwright": "^1.50.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

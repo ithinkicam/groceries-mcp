@@ -1,0 +1,23 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+.env
+.env.local
+
+# Cache (per-user; should not be committed)
+.cache/
+data/
+
+# Editor
+.vscode/
+.idea/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Tooling
+.tsbuildinfo
+*.tsbuildinfo
