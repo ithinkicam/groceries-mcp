@@ -39,7 +39,6 @@ Every scraper returns a `StoreDeals` object. The exact zod schema lives in
 | Publix | Real BOGOs (with `half_price` for VA) | Marked "Sale" lines | Everything else priced |
 | Aldi | (empty — Aldi doesn't BOGO) | All weekly-ad items | (empty) |
 | Lidl | (empty) | All current-specials items | (empty) |
-| Walmart | (empty) | Items found on shop/savings/food | Block markers if Akamai blocked |
 
 ## Why "Wednesday" for `week_starting`
 
@@ -60,8 +59,8 @@ falls back to keyword matching on `text` for anything ambiguous.
 ## Empty / partial success
 
 A scraper may legitimately return zero items — a store can have no deals one
-week, or anti-bot may have blocked. Consumers should:
+week. Consumers should:
 
-- Check `deals.other` for explanatory markers (Walmart's Akamai block goes
-  here) before treating "no items" as a hard failure.
 - Treat `meal_relevant === false` items as low-priority but still render-able.
+- Use `get_all_deals` (rather than per-store calls) so a single store failing
+  doesn't block the whole meal-planning workflow.

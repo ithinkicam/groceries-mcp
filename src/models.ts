@@ -11,7 +11,6 @@ export const StoreNameSchema = z.enum([
   "publix",
   "aldi",
   "lidl",
-  "walmart",
 ]);
 export type StoreName = z.infer<typeof StoreNameSchema>;
 
@@ -19,7 +18,6 @@ export const STORE_DISPLAY_NAMES: Record<StoreName, string> = {
   publix: "Publix",
   aldi: "Aldi",
   lidl: "Lidl",
-  walmart: "Walmart",
 };
 
 export const DealCategorySchema = z.enum([

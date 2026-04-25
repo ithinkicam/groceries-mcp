@@ -1,7 +1,7 @@
 {
   "name": "groceries-mcp",
   "version": "0.1.0",
-  "description": "MCP server that returns weekly grocery deals (Publix, Aldi, Lidl, Walmart) for use with Claude. Wraps Playwright + lightweight HTTP scrapers, caches per-week.",
+  "description": "MCP server that returns weekly grocery deals (Publix, Aldi, Lidl) for use with Claude. Wraps Playwright + lightweight HTTP scrapers, caches per-week.",
   "license": "MIT",
   "author": "Cameron Lewis",
   "type": "module",

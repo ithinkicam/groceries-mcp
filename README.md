@@ -1,9 +1,9 @@
 # groceries-mcp
 
 A Model Context Protocol server that returns weekly grocery deals from
-**Publix**, **Aldi**, **Lidl**, and **Walmart** as normalized JSON. Built to be
-called by a meal-planning workflow in Claude — no more "let me drive a browser
-for 30 turns to find this week's chicken sale."
+**Publix**, **Aldi**, and **Lidl** as normalized JSON. Built to be called by a
+meal-planning workflow in Claude — no more "let me drive a browser for 30
+turns to find this week's chicken sale."
 
 The scraping logic lives in real code (TypeScript + Playwright), the deal
 shape is the same one a [legacy Python pipeline][legacy] produced, and results
@@ -100,9 +100,15 @@ Verified live on **2026-04-25**:
 | Store | Method | Status |
 |---|---|---|
 | Publix | iHeartPublix HTML scrape | ✅ Working — 250 items, 1.8s |
-| Aldi | Playwright + GraphQL Items observation | ✅ Working — 178 items, 29s. Drives the "Shop Now" CTA into the catalog and observes the `Items` GraphQL responses as products lazy-load. |
+| Aldi | Playwright + GraphQL `Items` observation | ✅ Working — 178 items, 29s. Drives the "Shop Now" CTA into the catalog and observes the `Items` GraphQL responses as products lazy-load. |
 | Lidl | Playwright + product cards | ✅ Working — ~70 items, 5s |
-| Walmart | Playwright | ⚠️ Akamai bot detection blocks headless. Returns a "blocked" marker rather than throwing, so `get_all_deals` keeps working. |
+
+**Walmart** is intentionally not supported. Walmart's `walmart.com/shop/savings/food`
+is gated by Akamai bot detection that blocks headless browsers. Working around it
+requires either cookie-jar reuse from a real Chrome (host-coupled), stealth plugin
+arms-racing, or paid proxy services — all real engineering with ongoing maintenance,
+for what's a secondary store in this household. The meal-planner workflow can ask
+the user for Walmart deals manually if a given week is Walmart-heavy.
 
 When a scraper breaks, the dispatcher returns a clear error for that store and
 keeps the others working — `get_all_deals` is partial-success by design.

@@ -60,7 +60,7 @@ export interface CacheEntry {
 export async function listCache(): Promise<CacheEntry[]> {
   const dir = dataDir();
   if (!existsSync(dir)) return [];
-  const stores: StoreName[] = ["publix", "aldi", "lidl", "walmart"];
+  const stores: StoreName[] = ["publix", "aldi", "lidl"];
   const entries: CacheEntry[] = [];
   for (const store of stores) {
     const storeDir = path.join(dir, store);

@@ -8,13 +8,11 @@ import { Scraper } from "./scrapers/base.js";
 import { AldiScraper } from "./scrapers/aldi.js";
 import { LidlScraper } from "./scrapers/lidl.js";
 import { PublixScraper } from "./scrapers/publix.js";
-import { WalmartScraper } from "./scrapers/walmart.js";
 
 const SCRAPERS: Record<StoreName, Scraper> = {
   publix: new PublixScraper(),
   aldi: new AldiScraper(),
   lidl: new LidlScraper(),
-  walmart: new WalmartScraper(),
 };
 
 export function listStores(): StoreName[] {
