@@ -17,9 +17,17 @@ same question costs nothing.
 | Tool | What it does |
 |---|---|
 | `list_stores()` | Lists supported stores. |
-| `get_deals(store, week_of?, force_refresh?)` | Returns one store's deals. Cached. |
-| `get_all_deals(week_of?, force_refresh?)` | Returns every store, partial success. Cached. |
+| `get_publix_deals(week_of?, force_refresh?)` | Publix in isolation. ~2s. |
+| `get_aldi_deals(week_of?, force_refresh?)` | Aldi in isolation. ~30s. |
+| `get_lidl_deals(week_of?, force_refresh?)` | Lidl in isolation. ~5s. |
+| `get_all_deals(week_of?, force_refresh?)` | All three at once, partial success. Cached. |
 | `cache_status()` | Lists what's on disk: which stores, which weeks, file sizes. |
+
+The per-store tools all share the same input schema and return the same
+`StoreDeals` shape (see [`docs/DEAL-SHAPE.md`](docs/DEAL-SHAPE.md)). They exist
+as separate tools so claude.ai can call them in isolation by name without
+needing an outer `store` parameter — useful when the user wants "just check
+Publix this week."
 
 Every tool returns JSON in this shape (per store):
 

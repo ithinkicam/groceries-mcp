@@ -20,12 +20,62 @@ import {
   AllDealsResult,
   StoreDeals,
   StoreError,
-  StoreNameSchema,
   adWeekStarting,
 } from "./models.js";
 import { getDeals, listStores } from "./dispatcher.js";
 import { listCache } from "./cache.js";
 import { closeBrowser } from "./scrapers/browser.js";
+
+/**
+ * Common input schema for the per-store tools — same args, just dispatched
+ * against a different scraper. Defined once so descriptions stay consistent.
+ */
+const PER_STORE_INPUT_SCHEMA = {
+  week_of: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional()
+    .describe(
+      "ISO date (YYYY-MM-DD); rounded back to the Wednesday of that ad week. Defaults to current week.",
+    ),
+  force_refresh: z
+    .boolean()
+    .optional()
+    .describe("Bypass the cache and re-scrape even if a snapshot exists for this week."),
+};
+
+/**
+ * Register a `get_<store>_deals` tool that fetches a single store's weekly
+ * deals in isolation. Discoverable by name in claude.ai's tool UI.
+ */
+function registerStoreTool(
+  server: McpServer,
+  store: "publix" | "aldi" | "lidl",
+  displayName: string,
+  opts: { notes: string },
+): void {
+  server.registerTool(
+    `get_${store}_deals`,
+    {
+      description:
+        `Get this week's deals from ${displayName} as normalized JSON. ` +
+        `Reads from cache when available; pass force_refresh=true to re-scrape. ` +
+        opts.notes,
+      inputSchema: PER_STORE_INPUT_SCHEMA,
+    },
+    async ({ week_of, force_refresh }) => {
+      const week = week_of ? adWeekStarting(new Date(week_of)) : undefined;
+      const deals = await getDeals({
+        store,
+        ...(week !== undefined ? { weekStarting: week } : {}),
+        ...(force_refresh !== undefined ? { forceRefresh: force_refresh } : {}),
+      });
+      return {
+        content: [{ type: "text", text: JSON.stringify(deals, null, 2) }],
+      };
+    },
+  );
+}
 
 function createServer(): McpServer {
   const server = new McpServer({
@@ -47,38 +97,25 @@ function createServer(): McpServer {
     },
   );
 
-  server.registerTool(
-    "get_deals",
-    {
-      description:
-        "Get this week's deals for a single store. Reads from cache when available; pass force_refresh=true to re-scrape.",
-      inputSchema: {
-        store: StoreNameSchema,
-        week_of: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
-          .optional()
-          .describe(
-            "ISO date (YYYY-MM-DD); will be rounded to the Wednesday of that week. Defaults to current week.",
-          ),
-        force_refresh: z
-          .boolean()
-          .optional()
-          .describe("Bypass the cache and re-scrape even if a snapshot exists."),
-      },
-    },
-    async ({ store, week_of, force_refresh }) => {
-      const week = week_of ? adWeekStarting(new Date(week_of)) : undefined;
-      const deals = await getDeals({
-        store,
-        ...(week !== undefined ? { weekStarting: week } : {}),
-        ...(force_refresh !== undefined ? { forceRefresh: force_refresh } : {}),
-      });
-      return {
-        content: [{ type: "text", text: JSON.stringify(deals, null, 2) }],
-      };
-    },
-  );
+  // Per-store tools — discoverable by name in claude.ai's tool UI, callable
+  // in isolation without an outer "store" arg. Each shares the same cache and
+  // input schema; the only difference is which scraper they dispatch to.
+  registerStoreTool(server, "publix", "Publix", {
+    notes:
+      "Source: iHeartPublix.com. Returns BOGO deals with `half_price` set " +
+      "(Virginia is a half-price BOGO state). Fast (~2s). 200+ items typical.",
+  });
+  registerStoreTool(server, "aldi", "Aldi", {
+    notes:
+      "Drives the 'Shop Now' CTA into Aldi's catalog and observes the Items " +
+      "GraphQL responses as products lazy-load. Slower (~30s) due to " +
+      "browser-driven scrolling. ~150-200 items typical.",
+  });
+  registerStoreTool(server, "lidl", "Lidl", {
+    notes:
+      "Source: lidl.com/specials. Playwright + product-card text extraction. " +
+      "Fast (~5s). ~70 items typical.",
+  });
 
   server.registerTool(
     "get_all_deals",
