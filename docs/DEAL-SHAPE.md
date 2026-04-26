@@ -46,21 +46,14 @@ Most US grocers refresh weekly ads on Wednesday or Thursday. Rounding back to
 Wednesday gives a stable cache key that doesn't shift mid-week, so consecutive
 scrapes during the same ad cycle hit the same cache entry.
 
-## What the consumer should do
-
-The meal-planner skill flattens these buckets into a working list of ~30–40
-top deals (proteins, produce, dairy, pantry) and discards items where
-`meal_relevant === false`. It uses `category` for a coarse first pass and
-falls back to keyword matching on `text` for anything ambiguous.
-
-`is_bogo` + `half_price` on Publix items powers the
-"in Virginia, you only have to buy one" callout in the shopping list.
-
 ## Empty / partial success
 
-A scraper may legitimately return zero items — a store can have no deals one
-week. Consumers should:
+A scraper may legitimately return zero items — a store can have no deals in a
+given week. `get_all_deals` is partial-success by design: each store either
+returns a `StoreDeals` payload or a `StoreError` entry, and the request as a
+whole always succeeds. Prefer it over per-store calls in batch flows so one
+broken scraper doesn't block the rest.
 
-- Treat `meal_relevant === false` items as low-priority but still render-able.
-- Use `get_all_deals` (rather than per-store calls) so a single store failing
-  doesn't block the whole meal-planning workflow.
+Items with `meal_relevant === false` (snacks, household goods, etc.) are still
+returned, just flagged so consumers focused on cooking ingredients can de-rank
+or filter them.
