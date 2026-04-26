@@ -1,10 +1,10 @@
 /**
- * Source: iHeartPublix.com, a fan site that publishes the full weekly BOGO +
- * sale list as readable HTML. We find the most recent "sneak peek" post,
- * strip tags, and treat lines containing "$XX.YY" as deals.
+ * Source: services.publix.com/api/v4/savings, the same endpoint publix.com's
+ * weekly-ad page hits. The only auth is a `publixstore: <id>` header naming
+ * which store's ad to return — find your ID with `npm run find-publix-store`.
  *
- * Virginia is a half-price BOGO state, so for BOGO items we also compute
- * the effective single-unit price (price / 2).
+ * Virginia is a half-price BOGO state, so for BOGO items we also compute the
+ * effective single-unit price (price / 2).
  */
 import {
   DealItem,
@@ -15,109 +15,67 @@ import {
 } from "../models.js";
 import { Scraper } from "./base.js";
 
-const SNEAK_PEEK_URL = "https://www.iheartpublix.com/category/sneak-peek/";
-const POST_URL_PATTERN =
-  /href="(https:\/\/www\.iheartpublix\.com\/\d{4}\/\d{2}\/publix-ad-coupons-week-of-[^"]+)"/;
+const SAVINGS_URL =
+  "https://services.publix.com/api/v4/savings" +
+  "?smImg=235&enImg=368&fallbackImg=false&isMobile=false" +
+  "&page=1&pageSize=0&includePersonalizedDeals=false" +
+  "&languageID=1&isWeb=true&getSavingType=WeeklyAd";
 
 const USER_AGENT =
-  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
-const DEFAULT_HEADERS: Record<string, string> = {
-  "User-Agent": USER_AGENT,
-  Accept: "text/html,application/xhtml+xml",
-};
-
-async function fetchText(url: string, timeoutMs = 15_000): Promise<string> {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
-  try {
-    const res = await fetch(url, { headers: DEFAULT_HEADERS, signal: ctrl.signal });
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status} fetching ${url}`);
-    }
-    return await res.text();
-  } finally {
-    clearTimeout(timer);
-  }
+interface Saving {
+  savings: string;
+  title: string;
+  description?: string;
+  additionalDealInfo?: string | null;
 }
 
-async function findCurrentPostUrl(): Promise<string | null> {
-  const html = await fetchText(SNEAK_PEEK_URL);
-  const match = POST_URL_PATTERN.exec(html);
-  return match?.[1] ?? null;
-}
-
-function extractText(html: string): string {
-  const stripped = html
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
-    .replace(/<!--[\s\S]*?-->/g, " ");
-  // Insert newlines at common block-level boundaries so list items stay separate.
-  const broken = stripped
-    .replace(/<\/?(?:br|p|li|div|tr|h[1-6])\b[^>]*>/gi, "\n")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&#8211;/g, "–")
-    .replace(/&#8217;/g, "’")
-    .replace(/&#8220;/g, "“")
-    .replace(/&#8221;/g, "”");
-  return broken
-    .split("\n")
-    .map((l) => l.trim())
-    .filter((l) => l.length > 0)
-    .join("\n");
+interface SavingsResponse {
+  Savings?: Saving[];
 }
 
 const PRICE_RE = /\$(\d+\.\d{2})/;
-const PRICE_RE_GLOBAL = /\$(\d+\.\d{2})/g;
 
-function parseDeals(text: string): DealsBucket {
-  const lines = text.split("\n");
-  const deals: DealsBucket = { bogos: [], sale_items: [], other: [] };
-  let section: "bogos" | "sale_items" | "other" = "other";
+function toItem(s: Saving): DealItem {
+  const matchSource = `${s.title} ${s.description ?? ""}`;
+  const text =
+    `${s.title} — ${s.savings}` +
+    (s.additionalDealInfo ? ` (${s.additionalDealInfo})` : "");
+  const item: DealItem = {
+    text,
+    meal_relevant: isMealRelevant(matchSource),
+    category: categorize(matchSource),
+  };
 
-  for (const raw of lines) {
-    const line = raw.trim();
-    const upper = line.toUpperCase();
-
-    if (upper === "BOGOS" || (upper.includes("BOGO") && line.length < 20)) {
-      section = "bogos";
-      continue;
+  if (/Buy 1 Get 1 FREE/i.test(s.savings)) {
+    item.is_bogo = true;
+    // additionalDealInfo on a BOGO is "SAVE UP TO $X.XX" — the regular price
+    // of one unit. In half-price BOGO states (Virginia), that doubles as the
+    // basis for the half-price (price / 2).
+    const m = s.additionalDealInfo ? PRICE_RE.exec(s.additionalDealInfo) : null;
+    if (m?.[1]) {
+      item.price = m[1];
+      const half = parseFloat(m[1]) / 2;
+      if (Number.isFinite(half)) item.half_price = half.toFixed(2);
     }
-    if (upper.includes("SALE") && line.length < 30) {
-      section = "sale_items";
-      continue;
-    }
-
-    if (!PRICE_RE.test(line) || line.length <= 10) continue;
-
-    const dealText = line;
-    const meal_relevant = isMealRelevant(dealText);
-    const item: DealItem = {
-      text: dealText,
-      meal_relevant,
-      category: categorize(dealText),
-    };
-
-    const prices = [...dealText.matchAll(PRICE_RE_GLOBAL)].map((m) => m[1]);
-    if (prices[0]) item.price = prices[0];
-
-    if (upper.includes("BOGO")) {
-      item.is_bogo = true;
-      if (item.price) {
-        const half = parseFloat(item.price) / 2;
-        if (Number.isFinite(half)) item.half_price = half.toFixed(2);
-      }
-      deals.bogos.push(item);
-    } else {
-      deals[section].push(item);
-    }
+  } else {
+    const m = PRICE_RE.exec(s.savings);
+    if (m?.[1]) item.price = m[1];
   }
 
-  return deals;
+  return item;
+}
+
+function bucketize(savings: Saving[]): DealsBucket {
+  const out: DealsBucket = { bogos: [], sale_items: [], other: [] };
+  for (const s of savings) {
+    const item = toItem(s);
+    if (item.is_bogo) out.bogos.push(item);
+    else if (item.price) out.sale_items.push(item);
+    else out.other.push(item);
+  }
+  return out;
 }
 
 export class PublixScraper implements Scraper {
@@ -125,19 +83,28 @@ export class PublixScraper implements Scraper {
   readonly displayName = "Publix";
 
   async scrape(weekStarting: string): Promise<StoreDeals> {
-    const postUrl = await findCurrentPostUrl();
-    if (!postUrl) {
+    const storeId = process.env["PUBLIX_STORE_ID"];
+    if (!storeId) {
       throw new Error(
-        "Could not find a current Publix sneak-peek post on iheartpublix.com. The site layout may have changed.",
+        "PUBLIX_STORE_ID env var not set. Find your store ID with: " +
+          "npm run find-publix-store -- <zip>",
       );
     }
-    const html = await fetchText(postUrl);
-    const text = extractText(html);
-    const deals = parseDeals(text);
-
+    const res = await fetch(SAVINGS_URL, {
+      headers: {
+        "User-Agent": USER_AGENT,
+        Accept: "application/json",
+        publixstore: storeId,
+      },
+    });
+    if (!res.ok) {
+      throw new Error(`Publix savings API returned ${res.status} ${res.statusText}`);
+    }
+    const data = (await res.json()) as SavingsResponse;
+    const deals = bucketize(data.Savings ?? []);
     return {
       store: this.displayName,
-      source: postUrl,
+      source: SAVINGS_URL,
       fetched_at: new Date().toISOString(),
       week_starting: weekStarting,
       deals,

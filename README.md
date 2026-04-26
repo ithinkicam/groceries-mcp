@@ -62,10 +62,29 @@ npm install            # also installs the Chromium binary via Playwright
 npm run build
 ```
 
-Quick smoke test, no MCP layer involved:
+## Configure your Publix store
+
+Publix's weekly ad is store-specific, so the scraper needs a 4-digit store ID.
+Find yours by running the bundled helper with your zip code:
 
 ```bash
-npm run debug:run -- publix
+npm run find-publix-store -- 23060
+```
+
+```
+Found 9 Publix store(s) near 23060:
+  1589  The Shoppes at Crossridge      10250 Staples Mill Rd, Glen Allen, VA 23060-3064
+  1591  Virginia Center Marketplace    10150 Brook Rd, Glen Allen, VA 23059-6514
+  ...
+```
+
+Pick yours and set `PUBLIX_STORE_ID` in the environment. (Aldi and Lidl don't
+need this — their weekly ads aren't store-scoped on the web.)
+
+## Smoke test
+
+```bash
+PUBLIX_STORE_ID=1591 npm run debug:run -- publix
 npm run debug:run -- aldi --no-cache
 ```
 
@@ -197,6 +216,7 @@ the body means you're done. The bare prefix without the token must return
 
 | Var | Purpose |
 |---|---|
+| `PUBLIX_STORE_ID` | 4-digit Publix store number. Required for Publix scraping. Find yours with `npm run find-publix-store`. |
 | `GROCERIES_MCP_HOST` | Bind address. Default `127.0.0.1`. |
 | `GROCERIES_MCP_PORT` | HTTP port. Default `3939`. |
 | `GROCERIES_MCP_PATH_PREFIX` | Funnel route prefix (e.g. `/groceries`). |
@@ -216,7 +236,7 @@ Verified live on **2026-04-26**:
 
 | Store | Method | Status |
 |---|---|---|
-| Publix | iHeartPublix HTML scrape | Working — 250 items, ~2s |
+| Publix | `services.publix.com/api/v4/savings` direct (per `PUBLIX_STORE_ID`) | Working — ~600 items, <1s |
 | Aldi | Playwright + GraphQL `Items` observation | Working — 178 items, ~30s. Drives the "Shop Now" CTA into the catalog and observes the `Items` GraphQL responses as products lazy-load. |
 | Lidl | Playwright + product cards | Working — ~70 items, ~5s |
 

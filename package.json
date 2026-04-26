@@ -19,6 +19,7 @@
     "start:http": "node dist/index.js --transport http",
     "dev": "tsc --watch",
     "debug:run": "node --import tsx scripts/debug-run.ts",
+    "find-publix-store": "node --import tsx scripts/find-publix-store.ts",
     "test": "node --test --import tsx tests/**/*.test.ts",
     "postinstall": "playwright install chromium",
     "typecheck": "tsc --noEmit"
