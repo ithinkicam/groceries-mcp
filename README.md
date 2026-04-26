@@ -220,12 +220,6 @@ Verified live on **2026-04-26**:
 | Aldi | Playwright + GraphQL `Items` observation | Working — 178 items, ~30s. Drives the "Shop Now" CTA into the catalog and observes the `Items` GraphQL responses as products lazy-load. |
 | Lidl | Playwright + product cards | Working — ~70 items, ~5s |
 
-**Walmart** is intentionally not supported. `walmart.com/shop/savings/food`
-is gated by Akamai bot detection that blocks headless browsers. Working around
-it requires either cookie-jar reuse from a real Chrome (host-coupled), stealth-
-plugin arms-racing, or paid proxy services — all real engineering with ongoing
-maintenance, for what's a secondary store in this household.
-
 When a scraper breaks, the dispatcher returns a clear error for that store and
 keeps the others working — `get_all_deals` is partial-success by design.
 
