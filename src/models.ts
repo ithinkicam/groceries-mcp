@@ -1,9 +1,6 @@
 /**
  * Normalized data shapes returned by all scrapers, defined as zod schemas
  * so the MCP tool layer can advertise them as outputSchemas to clients.
- *
- * The shape is deliberately the same as what the legacy Python scrapers
- * produced, so the meal-planner skill that consumes this can stay unchanged.
  */
 import { z } from "zod";
 

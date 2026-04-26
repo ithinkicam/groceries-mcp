@@ -2,7 +2,7 @@
  * Publix scraper — uses iHeartPublix.com, a fan site that publishes the full
  * weekly BOGO + sale list as readable HTML.
  *
- * Strategy (ported from the legacy Python):
+ * Strategy:
  *   1. Fetch the "sneak peek" category page.
  *   2. Find the most recent post URL matching the weekly-ad slug pattern.
  *   3. Fetch that post; strip script/style; treat lines containing "$XX.YY" as deals.
