@@ -25,7 +25,7 @@ Every scraper returns a `StoreDeals` object. The exact zod schema lives in
 {
   text: string;             // Verbatim deal text as scraped
   meal_relevant: boolean;   // Heuristic: cooking-relevant vs. snacks/household
-  category?: "protein" | "produce" | "dairy" | "pantry" | "frozen" | "other";
+  category?: "protein" | "produce" | "bakery" | "dairy" | "pantry" | "frozen" | "other";
   price?: string;           // First $XX.YY found in `text`
   is_bogo?: boolean;        // Set on BOGO deals (Publix mainly)
   half_price?: string;      // For BOGO deals in half-price BOGO states (Virginia)

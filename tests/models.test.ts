@@ -25,11 +25,36 @@ test("categorize buckets common items correctly", () => {
   assert.equal(categorize("Toilet paper"), "other");
 });
 
+test("categorize handles fruit varieties beyond the basics", () => {
+  assert.equal(categorize("Black or Red Plums"), "produce");
+  assert.equal(categorize("Cotton Candy Grapes"), "produce");
+  assert.equal(categorize("Strawberries"), "produce");
+  assert.equal(categorize("Mangos or Honey Mangos"), "produce");
+  assert.equal(categorize("White Peaches"), "produce");
+  assert.equal(categorize("Pineapple Spears"), "produce");
+});
+
+test("categorize identifies bakery items", () => {
+  assert.equal(categorize("San Francisco style sourdough loaf"), "bakery");
+  assert.equal(categorize("Specially Selected Hawaiian Brioche Bun"), "bakery");
+  assert.equal(categorize("Croissants, 4 ct"), "bakery");
+  assert.equal(categorize("Plain Bagels"), "bakery");
+  assert.equal(categorize("GreenWise Mini Muffins"), "bakery");
+  assert.equal(categorize("Italian Bread"), "bakery");
+});
+
 test("isMealRelevant true positives + negatives", () => {
   assert.equal(isMealRelevant("Chicken breasts $4.99/lb"), true);
   assert.equal(isMealRelevant("Brussels sprouts"), true);
   assert.equal(isMealRelevant("Spinach"), true);
   assert.equal(isMealRelevant("Tide laundry detergent"), false);
+  // Produce that used to fall through:
+  assert.equal(isMealRelevant("Black or Red Plums"), true);
+  assert.equal(isMealRelevant("Red Seedless Grapes"), true);
+  assert.equal(isMealRelevant("Pineapple Spears"), true);
+  // Bakery:
+  assert.equal(isMealRelevant("Sourdough loaf"), true);
+  assert.equal(isMealRelevant("Hawaiian Brioche Bun"), true);
 });
 
 test("StoreDealsSchema accepts a well-formed payload", () => {
