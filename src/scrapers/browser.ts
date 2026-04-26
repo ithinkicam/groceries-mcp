@@ -1,8 +1,6 @@
 /**
- * Shared Playwright browser launcher. Holds a single Chromium instance per
- * process so consecutive scrapes don't pay the cold-start cost.
- *
- * Closed via `closeBrowser()` on shutdown.
+ * Single shared Chromium instance per process so consecutive scrapes don't pay
+ * the cold-start cost. Closed via `closeBrowser()` on shutdown.
  */
 import { Browser, BrowserContext, chromium } from "playwright";
 
@@ -18,10 +16,7 @@ export async function getBrowser(): Promise<Browser> {
   return browser;
 }
 
-/**
- * Get a fresh browser context with a realistic user-agent and viewport.
- * Each scrape should use its own context so cookies don't leak between sites.
- */
+/** Each scrape should use its own context so cookies don't leak between sites. */
 export async function getContext(): Promise<BrowserContext> {
   const b = await getBrowser();
   return b.newContext({

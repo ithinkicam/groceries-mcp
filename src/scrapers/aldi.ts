@@ -1,21 +1,12 @@
 /**
- * Aldi scraper.
- *
  * As of April 2026, aldi.us/weekly-specials/weekly-ads renders a "Shop Now"
- * CTA that links into a GraphQL-backed catalog at
- * `aldi.us/store/aldi/collections/rc-weekly-ad`. The product list is loaded
- * via a lazy-paginated `Items` GraphQL query that returns rich item data
- * including names, sizes, and prices.
+ * CTA that links into a GraphQL-backed catalog. The product list is loaded
+ * via a lazy-paginated `Items` GraphQL query.
  *
- * Strategy: drive the UI with Playwright, scroll to trigger all lazy
- * `Items` batches, and observe the network responses. We don't reverse the
- * GraphQL persisted-query hash — the page does the heavy lifting of
- * resolving the collection slug to a list of item IDs and batching the
- * fetches. We just listen.
- *
- * If Aldi switches the persisted-query hashes or restructures the page,
- * the scraper will still throw a clear error and the dispatcher will
- * surface it as a partial-success failure.
+ * Strategy: drive the UI with Playwright, scroll to trigger all lazy `Items`
+ * batches, and observe the network responses. We don't reverse the persisted-
+ * query hash — the page does the heavy lifting of resolving the collection
+ * slug to item IDs and batching the fetches. We just listen.
  */
 import {
   DealItem,

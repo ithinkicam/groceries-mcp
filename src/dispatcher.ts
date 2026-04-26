@@ -1,7 +1,3 @@
-/**
- * Coordinates: pick a scraper for a store name, hit the cache first,
- * fall through to a live scrape, and write back to the cache on success.
- */
 import { writeCache, readCache } from "./cache.js";
 import { adWeekStarting, StoreDeals, StoreName } from "./models.js";
 import { Scraper } from "./scrapers/base.js";

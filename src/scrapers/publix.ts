@@ -1,12 +1,7 @@
 /**
- * Publix scraper — uses iHeartPublix.com, a fan site that publishes the full
- * weekly BOGO + sale list as readable HTML.
- *
- * Strategy:
- *   1. Fetch the "sneak peek" category page.
- *   2. Find the most recent post URL matching the weekly-ad slug pattern.
- *   3. Fetch that post; strip script/style; treat lines containing "$XX.YY" as deals.
- *   4. Bucket into BOGOs / sale items based on section headers.
+ * Source: iHeartPublix.com, a fan site that publishes the full weekly BOGO +
+ * sale list as readable HTML. We find the most recent "sneak peek" post,
+ * strip tags, and treat lines containing "$XX.YY" as deals.
  *
  * Virginia is a half-price BOGO state, so for BOGO items we also compute
  * the effective single-unit price (price / 2).
@@ -52,10 +47,6 @@ async function findCurrentPostUrl(): Promise<string | null> {
   return match?.[1] ?? null;
 }
 
-/**
- * Strip <script>/<style> blocks and tags, returning a newline-separated stream
- * of visible text — same shape the Python HTMLParser produced.
- */
 function extractText(html: string): string {
   const stripped = html
     .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")

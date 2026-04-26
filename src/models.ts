@@ -1,10 +1,6 @@
-/**
- * Normalized data shapes returned by all scrapers, defined as zod schemas
- * so the MCP tool layer can advertise them as outputSchemas to clients.
- */
 import { z } from "zod";
 
-export const StoreNameSchema = z.enum([
+const StoreNameSchema = z.enum([
   "publix",
   "aldi",
   "lidl",
@@ -17,7 +13,7 @@ export const STORE_DISPLAY_NAMES: Record<StoreName, string> = {
   lidl: "Lidl",
 };
 
-export const DealCategorySchema = z.enum([
+const DealCategorySchema = z.enum([
   "protein",
   "produce",
   "dairy",
@@ -27,17 +23,13 @@ export const DealCategorySchema = z.enum([
 ]);
 export type DealCategory = z.infer<typeof DealCategorySchema>;
 
-/** A single sale item in a normalized form. */
-export const DealItemSchema = z.object({
-  /** Raw deal text as scraped, kept verbatim for human review. */
+const DealItemSchema = z.object({
   text: z.string(),
   /** True if the item appears cooking-relevant (vs. snacks, household, etc.). */
   meal_relevant: z.boolean(),
-  /** Coarse category — best-effort, may be 'other'. */
   category: DealCategorySchema.optional(),
   /** First dollar amount found in the text (e.g. "5.15"). */
   price: z.string().optional(),
-  /** True if the item is on a BOGO sale. */
   is_bogo: z.boolean().optional(),
   /**
    * For BOGO items in half-price BOGO states (Virginia), the effective price
@@ -47,7 +39,7 @@ export const DealItemSchema = z.object({
 });
 export type DealItem = z.infer<typeof DealItemSchema>;
 
-export const DealsBucketSchema = z.object({
+const DealsBucketSchema = z.object({
   bogos: z.array(DealItemSchema),
   sale_items: z.array(DealItemSchema),
   other: z.array(DealItemSchema),
@@ -64,18 +56,14 @@ export const StoreDealsSchema = z.object({
 });
 export type StoreDeals = z.infer<typeof StoreDealsSchema>;
 
-/**
- * Returned by get_all_deals. Failures don't poison the whole batch: a store
- * either has data or has an error, and successful stores are still returned.
- */
-export const StoreErrorSchema = z.object({
+const StoreErrorSchema = z.object({
   store: z.string(),
   error: z.string(),
   fetched_at: z.string(),
 });
 export type StoreError = z.infer<typeof StoreErrorSchema>;
 
-export const AllDealsResultSchema = z.object({
+const AllDealsResultSchema = z.object({
   week_starting: z.string(),
   results: z.record(z.string(), z.union([StoreDealsSchema, StoreErrorSchema])),
 });
@@ -96,7 +84,6 @@ export function adWeekStarting(date = new Date()): string {
   return d.toISOString().slice(0, 10);
 }
 
-/** Default keyword set used by scrapers to flag meal-relevant items. */
 export const MEAL_RELEVANT_KEYWORDS = [
   // Proteins
   "chicken", "beef", "pork", "steak", "turkey", "salmon", "shrimp", "seafood",
@@ -120,7 +107,6 @@ export const MEAL_RELEVANT_KEYWORDS = [
   "pizza", "frozen", "wontons", "dumplings", "edamame", "shrimp",
 ];
 
-/** Categorize a deal text into a coarse bucket. */
 export function categorize(text: string): DealCategory {
   const t = text.toLowerCase();
   if (/(chicken|beef|pork|steak|turkey|salmon|shrimp|fish|sausage|bacon|tenderloin|ground|lamb|tuna|cod|tilapia|seafood|guanciale|pancetta|prosciutto)/.test(t)) {

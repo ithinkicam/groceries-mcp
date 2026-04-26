@@ -53,10 +53,6 @@ const PER_STORE_INPUT_SCHEMA = {
     .describe("Bypass the cache and re-scrape even if a snapshot exists for this week."),
 };
 
-/**
- * Register a `get_<store>_deals` tool that fetches a single store's weekly
- * deals in isolation. Discoverable by name in claude.ai's tool UI.
- */
 function registerStoreTool(
   server: McpServer,
   store: "publix" | "aldi" | "lidl",

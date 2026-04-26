@@ -1,9 +1,6 @@
 /**
- * Simple JSON-on-disk cache keyed on `(store, week_starting)`.
- *
- * Stored at `<data_dir>/<store>/<week_starting>.json` so each week's snapshot
- * lives in a stable file. No expiry — the cache is implicitly week-scoped, and
- * a manual `force_refresh` from the MCP client overwrites.
+ * JSON-on-disk cache keyed on `(store, week_starting)`. No expiry — the cache
+ * is implicitly week-scoped, and `force_refresh` from the MCP client overwrites.
  */
 import { mkdir, readFile, writeFile, stat } from "node:fs/promises";
 import { existsSync } from "node:fs";
@@ -11,10 +8,6 @@ import path from "node:path";
 import os from "node:os";
 import { StoreDeals, StoreDealsSchema, StoreName } from "./models.js";
 
-/**
- * Resolve the data directory. Honors GROCERIES_MCP_DATA_DIR for deployment;
- * otherwise defaults under XDG_DATA_HOME (or ~/.local/share on macOS/Linux).
- */
 export function dataDir(): string {
   if (process.env["GROCERIES_MCP_DATA_DIR"]) {
     return process.env["GROCERIES_MCP_DATA_DIR"];
@@ -72,7 +65,6 @@ export async function listCache(): Promise<CacheEntry[]> {
       const weekStarting = f.replace(/\.json$/, "");
       const file = path.join(storeDir, f);
       const st = await stat(file);
-      // Read fetched_at without parsing the whole file.
       try {
         const raw = await readFile(file, "utf-8");
         const obj = JSON.parse(raw);
@@ -83,7 +75,7 @@ export async function listCache(): Promise<CacheEntry[]> {
           size_bytes: st.size,
         });
       } catch {
-        // Skip unreadable entries.
+        /* skip unreadable */
       }
     }
   }

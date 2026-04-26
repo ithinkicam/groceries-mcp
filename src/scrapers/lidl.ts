@@ -1,10 +1,6 @@
 /**
- * Lidl scraper — the "current specials" page lists all this-week items
- * with name + price as visible text. We render the page in Playwright,
- * scroll to load lazy items, then extract product cards via a stable selector.
- *
- * Lidl restructures its DOM occasionally, so we use a couple of fallback
- * selectors and the resulting list is filtered to lines with prices.
+ * Lidl restructures its DOM occasionally, so we cast a wide net of card-shaped
+ * selectors and filter the result to lines containing prices.
  */
 import {
   DealItem,
