@@ -1,9 +1,8 @@
 # groceries-mcp
 
 A Model Context Protocol server that returns weekly grocery deals from
-**Publix**, **Aldi**, and **Lidl** as normalized JSON. Built to feed a
-meal-planning workflow in Claude — no more "let me drive a browser for 30
-turns to find this week's chicken sale."
+**Publix**, **Aldi**, and **Lidl** as normalized JSON — so an LLM can answer
+"what's on sale this week?" without driving a browser for 30 turns.
 
 Scraping is TypeScript + Playwright. Results are cached on disk per
 `(store, week_starting_wednesday)` so re-asking the same question costs
