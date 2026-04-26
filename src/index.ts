@@ -8,6 +8,15 @@
  * Usage:
  *   node dist/index.js                      # stdio
  *   node dist/index.js --transport http     # HTTP on PORT (default 3939)
+ *
+ * HTTP env vars (used when running behind Tailscale Funnel):
+ *   GROCERIES_MCP_HOST          bind address (default 127.0.0.1)
+ *   GROCERIES_MCP_PORT          port (default 3939; --port flag wins)
+ *   GROCERIES_MCP_PATH_PREFIX   funnel route prefix (e.g. /groceries)
+ *   GROCERIES_MCP_TOKEN         secret path segment appended to the prefix
+ *                               so the public URL is <prefix>/<token>. claude.ai
+ *                               doesn't take bearer headers, so the secret has
+ *                               to live in the URL.
  */
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -186,15 +195,43 @@ async function runStdio(): Promise<void> {
   // stdio runs until the parent closes the pipe.
 }
 
-async function runHttp(port: number): Promise<void> {
+interface HttpOptions {
+  host: string;
+  port: number;
+  pathPrefix: string;
+  token: string;
+}
+
+async function runHttp(opts: HttpOptions): Promise<void> {
   // One McpServer per session, keyed by session id from the protocol.
   const sessions = new Map<
     string,
     { server: McpServer; transport: StreamableHTTPServerTransport }
   >();
 
+  const { host, port, pathPrefix, token } = opts;
+  // Public path is <prefix>/<token>. Token-as-path-segment is the convention
+  // (matches keep-mcp) because claude.ai's connector UI has no field for an
+  // Authorization header — the secret has to be embedded in the URL itself.
+  const requiredPath = token
+    ? `${pathPrefix}/${token}`
+    : pathPrefix;
+
   const httpServer = http.createServer(async (req, res) => {
     try {
+      if (requiredPath) {
+        const url = req.url ?? "/";
+        const pathOnly = url.split("?")[0] ?? "/";
+        if (
+          pathOnly !== requiredPath &&
+          !pathOnly.startsWith(requiredPath + "/")
+        ) {
+          res.writeHead(404, { "content-type": "application/json" });
+          res.end(JSON.stringify({ error: "Not found" }));
+          return;
+        }
+      }
+
       const sid = req.headers["mcp-session-id"];
       const sessionId = Array.isArray(sid) ? sid[0] : sid;
       let entry = sessionId ? sessions.get(sessionId) : undefined;
@@ -242,8 +279,12 @@ async function runHttp(port: number): Promise<void> {
     }
   });
 
-  httpServer.listen(port, () => {
-    console.error(`groceries-mcp listening on http://0.0.0.0:${port}/`);
+  httpServer.listen(port, host, () => {
+    const display = requiredPath || "/";
+    console.error(
+      `groceries-mcp listening on http://${host}:${port}${display} ` +
+        `(token-in-path: ${token ? "yes" : "no"})`,
+    );
   });
 }
 
@@ -256,8 +297,17 @@ process.on("SIGTERM", shutdown);
 
 const transport = getArg("--transport", "stdio");
 if (transport === "http") {
-  const port = parseInt(getArg("--port", process.env["PORT"] ?? "3939"), 10);
-  await runHttp(port);
+  const port = parseInt(
+    getArg(
+      "--port",
+      process.env["GROCERIES_MCP_PORT"] ?? process.env["PORT"] ?? "3939",
+    ),
+    10,
+  );
+  const host = process.env["GROCERIES_MCP_HOST"] ?? "127.0.0.1";
+  const pathPrefix = process.env["GROCERIES_MCP_PATH_PREFIX"] ?? "";
+  const token = process.env["GROCERIES_MCP_TOKEN"] ?? "";
+  await runHttp({ host, port, pathPrefix, token });
 } else {
   await runStdio();
 }
