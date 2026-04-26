@@ -27,11 +27,13 @@ import { randomUUID } from "node:crypto";
 
 import {
   AllDealsResult,
+  DealCategorySchema,
   StoreDeals,
   StoreError,
+  StoreNameSchema,
   adWeekStarting,
 } from "./models.js";
-import { getDeals, listStores } from "./dispatcher.js";
+import { findDealsAcrossStores, getDeals, listStores } from "./dispatcher.js";
 import { listCache } from "./cache.js";
 import { closeBrowser } from "./scrapers/browser.js";
 
@@ -156,6 +158,69 @@ function createServer(): McpServer {
       const payload: AllDealsResult = { week_starting: week, results };
       return {
         content: [{ type: "text", text: JSON.stringify(payload, null, 2) }],
+      };
+    },
+  );
+
+  server.registerTool(
+    "find_deals",
+    {
+      description:
+        "Search for deals across stores by category and/or keywords. Useful for " +
+        "questions like 'where should I shop for produce this week?', 'who has " +
+        "bakery deals?', or 'where can I get strawberries, chicken, and cheddar?'. " +
+        "Reuses the same cached weekly scrape as get_all_deals, so it's free " +
+        "after the week's data is loaded once. Response includes a per-store " +
+        "breakdown and (when keywords are provided) a per-keyword breakdown so " +
+        "the consumer can compare prices across stores for each item.",
+      inputSchema: {
+        category: DealCategorySchema.optional().describe(
+          "Limit results to one DealItem category (protein, produce, bakery, dairy, pantry, frozen, other).",
+        ),
+        keywords: z
+          .array(z.string())
+          .optional()
+          .describe(
+            "Case-insensitive substring matches against the deal text. Each keyword " +
+              "is also returned grouped under by_keyword so a caller can see which " +
+              "store wins for each item independently.",
+          ),
+        store: StoreNameSchema.optional().describe(
+          "Limit to a single store. Default searches all stores.",
+        ),
+        meal_relevant_only: z
+          .boolean()
+          .optional()
+          .describe(
+            "Filter out items the heuristic flagged as non-cooking (snacks, household). Default true.",
+          ),
+        week_of: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
+        force_refresh: z.boolean().optional(),
+      },
+    },
+    async ({
+      category,
+      keywords,
+      store,
+      meal_relevant_only,
+      week_of,
+      force_refresh,
+    }) => {
+      const result = await findDealsAcrossStores({
+        ...(category !== undefined ? { category } : {}),
+        ...(keywords !== undefined ? { keywords } : {}),
+        ...(store !== undefined ? { stores: [store] } : {}),
+        ...(meal_relevant_only !== undefined ? { mealRelevantOnly: meal_relevant_only } : {}),
+        ...(week_of !== undefined
+          ? { weekStarting: adWeekStarting(new Date(week_of)) }
+          : {}),
+        ...(force_refresh !== undefined ? { forceRefresh: force_refresh } : {}),
+      });
+      return {
+        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
       };
     },
   );

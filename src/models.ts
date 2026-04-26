@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const StoreNameSchema = z.enum([
+export const StoreNameSchema = z.enum([
   "publix",
   "aldi",
   "lidl",
@@ -13,7 +13,7 @@ export const STORE_DISPLAY_NAMES: Record<StoreName, string> = {
   lidl: "Lidl",
 };
 
-const DealCategorySchema = z.enum([
+export const DealCategorySchema = z.enum([
   "protein",
   "produce",
   "bakery",
@@ -122,6 +122,22 @@ export const MEAL_RELEVANT_KEYWORDS = [
 
 export function categorize(text: string): DealCategory {
   const t = text.toLowerCase();
+  // Bag snacks share keywords with produce/bakery ("potato chips" matches
+  // "potato", "tortilla chips" matches "tortilla"). Route them to pantry so
+  // the produce/bakery categories aren't polluted with snack noise.
+  if (/\b(chips|pretzels?|popcorn)\b/.test(t)) {
+    return "pantry";
+  }
+  // Non-food items occasionally appear (Aldi sells totes, garden figurines,
+  // bath/cleaning supplies). They may incidentally contain a fruit or grain
+  // name — keep them out of food categories.
+  if (
+    /\b(tote|figurine|stake|candle|toothpaste|lotion|detergent|towel|napkin|shampoo)\b/.test(
+      t,
+    )
+  ) {
+    return "other";
+  }
   if (/(chicken|beef|pork|steak|turkey|salmon|shrimp|fish|sausage|bacon|tenderloin|ground|lamb|tuna|cod|tilapia|seafood|guanciale|pancetta|prosciutto)/.test(t)) {
     return "protein";
   }

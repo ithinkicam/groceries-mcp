@@ -43,6 +43,19 @@ test("categorize identifies bakery items", () => {
   assert.equal(categorize("Italian Bread"), "bakery");
 });
 
+test("categorize routes snacks and non-food items away from produce/bakery", () => {
+  // Snacks that incidentally contain produce/bakery keywords go to pantry.
+  assert.equal(categorize("Lay's Potato Chips"), "pantry");
+  assert.equal(categorize("Utz Family Size Potato Chips"), "pantry");
+  assert.equal(categorize("Doritos tortilla chips, nacho cheese"), "pantry");
+  assert.equal(categorize("Jolly Time Popcorn"), "pantry");
+  assert.equal(categorize("Snyder's pretzels"), "pantry");
+  // Non-food items end up as "other" even if they match a fruit/grain name.
+  assert.equal(categorize("LS LIVE IN STYLE City Tote - Cherry"), "other");
+  assert.equal(categorize("Belavi Solar Garden Figurine, Frog"), "other");
+  assert.equal(categorize("Colgate Optic White Toothpaste"), "other");
+});
+
 test("isMealRelevant true positives + negatives", () => {
   assert.equal(isMealRelevant("Chicken breasts $4.99/lb"), true);
   assert.equal(isMealRelevant("Brussels sprouts"), true);

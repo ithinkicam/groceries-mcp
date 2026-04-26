@@ -17,6 +17,7 @@ nothing.
 | `get_aldi_deals(week_of?, force_refresh?)` | Aldi in isolation. ~30s. |
 | `get_lidl_deals(week_of?, force_refresh?)` | Lidl in isolation. ~5s. |
 | `get_all_deals(week_of?, force_refresh?)` | All three at once, partial success. |
+| `find_deals({category?, keywords?, store?, ...})` | Cross-store search by category and/or keywords. Returns a per-store breakdown plus a per-keyword breakdown for comparing prices on the same item across stores. |
 | `cache_status()` | What's on disk: which stores, which weeks, file sizes. |
 
 The per-store tools share an input schema and return the same `StoreDeals`
@@ -50,6 +51,12 @@ Sample output (per store):
 ```
 
 The full contract lives in [`docs/DEAL-SHAPE.md`](docs/DEAL-SHAPE.md).
+
+`find_deals` is the right tool for shopping-trip questions like:
+
+- *"I'm running low on produce — where should I go?"* → `find_deals({ category: "produce" })`
+- *"I want to bake a sweet treat."* → `find_deals({ category: "bakery" })`
+- *"Where's the best deal on strawberries, chicken, and cheddar this week?"* → `find_deals({ keywords: ["strawberr", "chicken", "cheddar"] })`
 
 ## Install
 
