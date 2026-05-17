@@ -8,6 +8,7 @@ import {
 } from "./models.js";
 import { Scraper } from "./scrapers/base.js";
 import { AldiScraper } from "./scrapers/aldi.js";
+import { KrogerScraper } from "./scrapers/kroger.js";
 import { LidlScraper } from "./scrapers/lidl.js";
 import { PublixScraper } from "./scrapers/publix.js";
 
@@ -15,6 +16,7 @@ const SCRAPERS: Record<StoreName, Scraper> = {
   publix: new PublixScraper(),
   aldi: new AldiScraper(),
   lidl: new LidlScraper(),
+  kroger: new KrogerScraper(),
 };
 
 export function listStores(): StoreName[] {

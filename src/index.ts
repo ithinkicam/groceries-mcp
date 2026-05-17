@@ -57,7 +57,7 @@ const PER_STORE_INPUT_SCHEMA = {
 
 function registerStoreTool(
   server: McpServer,
-  store: "publix" | "aldi" | "lidl",
+  store: "publix" | "aldi" | "lidl" | "kroger",
   displayName: string,
   opts: { notes: string },
 ): void {
@@ -122,6 +122,14 @@ function createServer(): McpServer {
     notes:
       "Source: lidl.com/specials. Playwright + product-card text extraction. " +
       "Fast (~5s). ~70 items typical.",
+  });
+  registerStoreTool(server, "kroger", "Kroger", {
+    notes:
+      "Source: Kroger Developer API (api.kroger.com). Requires KROGER_CLIENT_ID, " +
+      "KROGER_CLIENT_SECRET, and KROGER_LOCATION_ID env vars — register at " +
+      "developer.kroger.com and find your store with: npm run find-kroger-store -- <zip>. " +
+      "Searches ~30 grocery categories and returns items where the API reports a " +
+      "promotional price lower than the regular price. Fast (~10s). Item count varies.",
   });
 
   server.registerTool(

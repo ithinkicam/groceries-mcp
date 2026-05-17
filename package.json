@@ -20,6 +20,7 @@
     "dev": "tsc --watch",
     "debug:run": "node --import tsx scripts/debug-run.ts",
     "find-publix-store": "node --import tsx scripts/find-publix-store.ts",
+    "find-kroger-store": "node --import tsx scripts/find-kroger-store.ts",
     "test": "node --test --import tsx tests/**/*.test.ts",
     "postinstall": "playwright install chromium",
     "typecheck": "tsc --noEmit"
