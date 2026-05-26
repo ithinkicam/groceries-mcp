@@ -21,3 +21,5 @@ playwright/.cache/
 # Tooling
 .tsbuildinfo
 *.tsbuildinfo
+
+package-lock.json
