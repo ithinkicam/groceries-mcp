@@ -1,16 +1,29 @@
 import { z } from "zod";
 
+/** All known stores. */
 export const StoreNameSchema = z.enum([
   "publix",
   "aldi",
   "lidl",
+  "walmart",
+  "shoprite",
 ]);
 export type StoreName = z.infer<typeof StoreNameSchema>;
+
+/** Stores that have a weekly-deal scraper. */
+export const DealStoreNameSchema = z.enum(["publix", "aldi", "lidl", "shoprite"]);
+export type DealStoreName = z.infer<typeof DealStoreNameSchema>;
+
+/** Stores that support live per-item price search. */
+export const SearchStoreNameSchema = z.enum(["walmart", "aldi", "shoprite", "lidl", "publix"]);
+export type SearchStoreName = z.infer<typeof SearchStoreNameSchema>;
 
 export const STORE_DISPLAY_NAMES: Record<StoreName, string> = {
   publix: "Publix",
   aldi: "Aldi",
   lidl: "Lidl",
+  walmart: "Walmart",
+  shoprite: "ShopRite",
 };
 
 export const DealCategorySchema = z.enum([
@@ -69,6 +82,32 @@ const AllDealsResultSchema = z.object({
   results: z.record(z.string(), z.union([StoreDealsSchema, StoreErrorSchema])),
 });
 export type AllDealsResult = z.infer<typeof AllDealsResultSchema>;
+
+// ─── Price-search models ──────────────────────────────────────────────────────
+
+/** One store's result for a single search query. */
+const PriceSearchResultSchema = z.object({
+  store: z.string(),
+  query: z.string(),
+  matched_name: z.string().nullable(),
+  price: z.number().nullable(),
+  /** Per-unit price string as shown by the retailer (e.g. "$0.89 / oz"). */
+  unit_price: z.string().optional(),
+  url: z.string().optional(),
+  error: z.string().optional(),
+});
+export type PriceSearchResult = z.infer<typeof PriceSearchResultSchema>;
+
+/** All store results for a single search query. */
+const ItemPriceSearchSchema = z.object({
+  query: z.string(),
+  zip_code: z.string(),
+  fetched_at: z.string(),
+  results: z.array(PriceSearchResultSchema),
+});
+export type ItemPriceSearch = z.infer<typeof ItemPriceSearchSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Compute the Wednesday of the ad week containing `date`.
