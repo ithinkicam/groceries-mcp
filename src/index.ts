@@ -28,14 +28,21 @@ import { randomUUID } from "node:crypto";
 import {
   AllDealsResult,
   DealCategorySchema,
+  DealStoreNameSchema,
+  SearchStoreNameSchema,
   StoreDeals,
   StoreError,
-  StoreNameSchema,
   adWeekStarting,
 } from "./models.js";
-import { findDealsAcrossStores, getDeals, listStores } from "./dispatcher.js";
+import {
+  findDealsAcrossStores,
+  getDeals,
+  listStores,
+  listSearchStores,
+  searchItemPrices,
+} from "./dispatcher.js";
 import { listCache } from "./cache.js";
-import { closeBrowser } from "./scrapers/browser.js";
+import { closeBrowser, closeStealthBrowser } from "./scrapers/browser.js";
 
 /**
  * Common input schema for the per-store tools — same args, just dispatched
@@ -57,7 +64,7 @@ const PER_STORE_INPUT_SCHEMA = {
 
 function registerStoreTool(
   server: McpServer,
-  store: "publix" | "aldi" | "lidl",
+  store: import("./models.js").DealStoreName,
   displayName: string,
   opts: { notes: string },
 ): void {
@@ -93,13 +100,19 @@ function createServer(): McpServer {
   server.registerTool(
     "list_stores",
     {
-      description: "List the store names this server can return deals for.",
+      description:
+        "List all stores this server supports, grouped by capability: " +
+        "'deal_stores' have weekly-ad scrapers (get_*_deals, find_deals); " +
+        "'search_stores' support live per-item price search (search_item_prices).",
       inputSchema: {},
     },
     async () => {
-      const stores = listStores();
+      const payload = {
+        deal_stores: listStores(),
+        search_stores: listSearchStores(),
+      };
       return {
-        content: [{ type: "text", text: JSON.stringify({ stores }, null, 2) }],
+        content: [{ type: "text", text: JSON.stringify(payload, null, 2) }],
       };
     },
   );
@@ -122,6 +135,11 @@ function createServer(): McpServer {
     notes:
       "Source: lidl.com/specials. Playwright + product-card text extraction. " +
       "Fast (~5s). ~70 items typical.",
+  });
+  registerStoreTool(server, "shoprite", "ShopRite", {
+    notes:
+      "Source: shoprite.com promotions ('On Sale Now') page. Store-scoped by " +
+      "SHOPRITE_RSID env var (default 3000). Playwright scroll-and-collect (~5s).",
   });
 
   server.registerTool(
@@ -185,8 +203,8 @@ function createServer(): McpServer {
               "is also returned grouped under by_keyword so a caller can see which " +
               "store wins for each item independently.",
           ),
-        store: StoreNameSchema.optional().describe(
-          "Limit to a single store. Default searches all stores.",
+        store: DealStoreNameSchema.optional().describe(
+          "Limit to a single deal store (publix, aldi, lidl). Default searches all deal stores.",
         ),
         meal_relevant_only: z
           .boolean()
@@ -221,6 +239,59 @@ function createServer(): McpServer {
       });
       return {
         content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+      };
+    },
+  );
+
+  server.registerTool(
+    "search_item_prices",
+    {
+      description:
+        "Look up current shelf prices for shopping-list items across Walmart, Aldi, " +
+        "ShopRite, Lidl, and Publix. Each store is queried live — results are NOT cached since " +
+        "shelf prices change daily. Returns the best-matching product per store with " +
+        "its current price and a direct link to the product page. " +
+        "Requires a ZIP code to select the nearest store. " +
+        "Typical latency: 20–60 s per item (browser-driven). " +
+        "All stores work with the default camoufox stealth backend " +
+        "(Walmart's PerimeterX press-and-hold challenge is auto-solved). " +
+        "All five stores resolve the store nearest the ZIP " +
+        "(Publix/Aldi via Instacart pickup ≈ in-store prices). " +
+        "Returns up to N matches per store per item in the store's relevance " +
+        "order (N defaults to 3, configurable via the GROCERIES_SEARCH_TOP_N " +
+        "env var), so you can compare sizes/brands and pick the best price. " +
+        "Best used for 'how much does X cost at Y?' questions after using find_deals " +
+        "to narrow down which stores to compare.",
+      inputSchema: {
+        items: z
+          .array(z.string())
+          .min(1)
+          .max(10)
+          .describe(
+            "Shopping list items to search, e.g. ['chicken breast', 'cheddar cheese']. " +
+              "Max 10 items.",
+          ),
+        zip_code: z
+          .string()
+          .regex(/^\d{5}$/)
+          .describe("5-digit US ZIP code to select the nearest store location."),
+        stores: z
+          .array(SearchStoreNameSchema)
+          .optional()
+          .describe(
+            "Limit search to specific stores: walmart, aldi, shoprite, lidl, publix. " +
+              "Defaults to all of them.",
+          ),
+      },
+    },
+    async ({ items, zip_code, stores }) => {
+      const results = await searchItemPrices({
+        items,
+        zipCode: zip_code,
+        ...(stores !== undefined ? { stores } : {}),
+      });
+      return {
+        content: [{ type: "text", text: JSON.stringify(results, null, 2) }],
       };
     },
   );
@@ -351,6 +422,7 @@ async function runHttp(opts: HttpOptions): Promise<void> {
 
 async function shutdown(): Promise<void> {
   await closeBrowser();
+  await closeStealthBrowser();
   process.exit(0);
 }
 process.on("SIGINT", shutdown);
