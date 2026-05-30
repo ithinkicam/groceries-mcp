@@ -37,10 +37,7 @@ export async function readCache(
   }
 }
 
-export async function writeCache(
-  deals: StoreDeals,
-  store: StoreName,
-): Promise<void> {
+export async function writeCache(deals: StoreDeals, store: StoreName): Promise<void> {
   const file = cachePath(store, deals.week_starting);
   await mkdir(path.dirname(file), { recursive: true });
   await writeFile(file, JSON.stringify(deals, null, 2), "utf-8");

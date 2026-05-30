@@ -140,9 +140,7 @@ function createServer(): McpServer {
       },
     },
     async ({ week_of, force_refresh }) => {
-      const week = week_of
-        ? adWeekStarting(new Date(week_of))
-        : adWeekStarting();
+      const week = week_of ? adWeekStarting(new Date(week_of)) : adWeekStarting();
       const stores = listStores();
       const results: Record<string, StoreDeals | StoreError> = {};
       // Run scrapers sequentially. Concurrent Playwright contexts share a
@@ -152,9 +150,7 @@ function createServer(): McpServer {
           results[store] = await getDeals({
             store,
             weekStarting: week,
-            ...(force_refresh !== undefined
-              ? { forceRefresh: force_refresh }
-              : {}),
+            ...(force_refresh !== undefined ? { forceRefresh: force_refresh } : {}),
           });
         } catch (err) {
           results[store] = {

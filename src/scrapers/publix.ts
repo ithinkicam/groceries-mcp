@@ -98,9 +98,7 @@ export class PublixScraper implements Scraper {
       },
     });
     if (!res.ok) {
-      throw new Error(
-        `Publix savings API returned ${res.status} ${res.statusText}`,
-      );
+      throw new Error(`Publix savings API returned ${res.status} ${res.statusText}`);
     }
     const data = (await res.json()) as SavingsResponse;
     const deals = bucketize(data.Savings ?? []);

@@ -43,16 +43,10 @@ try {
     deals.deals.bogos.filter((d) => d.meal_relevant).length +
     deals.deals.sale_items.filter((d) => d.meal_relevant).length +
     deals.deals.other.filter((d) => d.meal_relevant).length;
-  console.log(
-    `Done in ${elapsed}s — ${total} items, ${mealRelevant} meal-relevant.`,
-  );
+  console.log(`Done in ${elapsed}s — ${total} items, ${mealRelevant} meal-relevant.`);
   console.log(`Source: ${deals.source}`);
   console.log(`First 5 meal-relevant items:`);
-  const all = [
-    ...deals.deals.bogos,
-    ...deals.deals.sale_items,
-    ...deals.deals.other,
-  ];
+  const all = [...deals.deals.bogos, ...deals.deals.sale_items, ...deals.deals.other];
   all
     .filter((d) => d.meal_relevant)
     .slice(0, 5)
