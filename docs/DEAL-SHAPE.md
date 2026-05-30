@@ -34,11 +34,11 @@ Every scraper returns a `StoreDeals` object. The exact zod schema lives in
 
 ## Bucket meaning by store
 
-| Store | `bogos` | `sale_items` | `other` |
-|---|---|---|---|
-| Publix | Real BOGOs (with `half_price` for VA) | Marked "Sale" lines | Everything else priced |
-| Aldi | (empty — Aldi doesn't BOGO) | All weekly-ad items | (empty) |
-| Lidl | (empty) | All current-specials items | (empty) |
+| Store  | `bogos`                               | `sale_items`               | `other`                |
+| ------ | ------------------------------------- | -------------------------- | ---------------------- |
+| Publix | Real BOGOs (with `half_price` for VA) | Marked "Sale" lines        | Everything else priced |
+| Aldi   | (empty — Aldi doesn't BOGO)           | All weekly-ad items        | (empty)                |
+| Lidl   | (empty)                               | All current-specials items | (empty)                |
 
 ## Why "Wednesday" for `week_starting`
 

@@ -24,7 +24,6 @@ export class LidlScraper implements Scraper {
   async scrape(weekStarting: string): Promise<StoreDeals> {
     const ctx = await getContext();
     const page = await ctx.newPage();
-    let texts: string[] = [];
     try {
       await page.goto(LIDL_URL, { waitUntil: "domcontentloaded", timeout: 45_000 });
       // Lazy-loaded product grid — scroll a few times.
@@ -33,7 +32,7 @@ export class LidlScraper implements Scraper {
         await page.waitForTimeout(400);
       }
       // Pull every card-shaped block on the page; let the price filter narrow it.
-      texts = await page.evaluate(() => {
+      const texts = await page.evaluate(() => {
         const out: string[] = [];
         const candidates = document.querySelectorAll(
           'article, [class*="product"], [class*="card"], [class*="tile"]',
@@ -44,20 +43,20 @@ export class LidlScraper implements Scraper {
         });
         return out;
       });
+
+      const deals = parseTexts(texts);
+
+      return {
+        store: this.displayName,
+        source: LIDL_URL,
+        fetched_at: new Date().toISOString(),
+        week_starting: weekStarting,
+        deals,
+      };
     } finally {
       await page.close().catch(() => {});
       await ctx.close().catch(() => {});
     }
-
-    const deals = parseTexts(texts);
-
-    return {
-      store: this.displayName,
-      source: LIDL_URL,
-      fetched_at: new Date().toISOString(),
-      week_starting: weekStarting,
-      deals,
-    };
   }
 }
 

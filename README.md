@@ -10,15 +10,15 @@ nothing.
 
 ## What it exposes
 
-| Tool | What it does |
-|---|---|
-| `list_stores()` | Lists supported stores. |
-| `get_publix_deals(week_of?, force_refresh?)` | Publix in isolation. ~2s. |
-| `get_aldi_deals(week_of?, force_refresh?)` | Aldi in isolation. ~30s. |
-| `get_lidl_deals(week_of?, force_refresh?)` | Lidl in isolation. ~5s. |
-| `get_all_deals(week_of?, force_refresh?)` | All three at once, partial success. |
+| Tool                                              | What it does                                                                                                                                                    |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `list_stores()`                                   | Lists supported stores.                                                                                                                                         |
+| `get_publix_deals(week_of?, force_refresh?)`      | Publix in isolation. ~2s.                                                                                                                                       |
+| `get_aldi_deals(week_of?, force_refresh?)`        | Aldi in isolation. ~30s.                                                                                                                                        |
+| `get_lidl_deals(week_of?, force_refresh?)`        | Lidl in isolation. ~5s.                                                                                                                                         |
+| `get_all_deals(week_of?, force_refresh?)`         | All three at once, partial success.                                                                                                                             |
 | `find_deals({category?, keywords?, store?, ...})` | Cross-store search by category and/or keywords. Returns a per-store breakdown plus a per-keyword breakdown for comparing prices on the same item across stores. |
-| `cache_status()` | What's on disk: which stores, which weeks, file sizes. |
+| `cache_status()`                                  | What's on disk: which stores, which weeks, file sizes.                                                                                                          |
 
 The per-store tools share an input schema and return the same `StoreDeals`
 shape. They exist as separate tools so claude.ai can call them by name without
@@ -54,9 +54,9 @@ The full contract lives in [`docs/DEAL-SHAPE.md`](docs/DEAL-SHAPE.md).
 
 `find_deals` is the right tool for shopping-trip questions like:
 
-- *"I'm running low on produce — where should I go?"* → `find_deals({ category: "produce" })`
-- *"I want to bake a sweet treat."* → `find_deals({ category: "bakery" })`
-- *"Where's the best deal on strawberries, chicken, and cheddar this week?"* → `find_deals({ keywords: ["strawberr", "chicken", "cheddar"] })`
+- _"I'm running low on produce — where should I go?"_ → `find_deals({ category: "produce" })`
+- _"I want to bake a sweet treat."_ → `find_deals({ category: "bakery" })`
+- _"Where's the best deal on strawberries, chicken, and cheddar this week?"_ → `find_deals({ keywords: ["strawberr", "chicken", "cheddar"] })`
 
 ## Install
 
@@ -95,6 +95,13 @@ PUBLIX_STORE_ID=1591 npm run debug:run -- publix
 npm run debug:run -- aldi --no-cache
 ```
 
+## Contributing
+
+PRs run separate checks for formatting, linting, typechecking, unit tests, build,
+and repo hygiene so failures are easy to spot in GitHub. See
+[`CONTRIBUTING.md`](CONTRIBUTING.md) for local commands and the scraper-evidence
+template to include when changing live retailer scraping.
+
 ## Local use (Claude Code, stdio)
 
 Register the built binary as a stdio MCP in Claude Code:
@@ -105,9 +112,9 @@ Register the built binary as a stdio MCP in Claude Code:
   "mcpServers": {
     "groceries": {
       "command": "node",
-      "args": ["/path/to/groceries-mcp/dist/index.js"]
-    }
-  }
+      "args": ["/path/to/groceries-mcp/dist/index.js"],
+    },
+  },
 }
 ```
 
@@ -221,14 +228,14 @@ the body means you're done. The bare prefix without the token must return
 
 ## Environment variables
 
-| Var | Purpose |
-|---|---|
-| `PUBLIX_STORE_ID` | 4-digit Publix store number. Required for Publix scraping. Find yours with `npm run find-publix-store`. |
-| `GROCERIES_MCP_HOST` | Bind address. Default `127.0.0.1`. |
-| `GROCERIES_MCP_PORT` | HTTP port. Default `3939`. |
-| `GROCERIES_MCP_PATH_PREFIX` | Funnel route prefix (e.g. `/groceries`). |
-| `GROCERIES_MCP_TOKEN` | Secret path segment. Required for remote exposure. |
-| `GROCERIES_MCP_DATA_DIR` | Cache directory override. |
+| Var                         | Purpose                                                                                                 |
+| --------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `PUBLIX_STORE_ID`           | 4-digit Publix store number. Required for Publix scraping. Find yours with `npm run find-publix-store`. |
+| `GROCERIES_MCP_HOST`        | Bind address. Default `127.0.0.1`.                                                                      |
+| `GROCERIES_MCP_PORT`        | HTTP port. Default `3939`.                                                                              |
+| `GROCERIES_MCP_PATH_PREFIX` | Funnel route prefix (e.g. `/groceries`).                                                                |
+| `GROCERIES_MCP_TOKEN`       | Secret path segment. Required for remote exposure.                                                      |
+| `GROCERIES_MCP_DATA_DIR`    | Cache directory override.                                                                               |
 
 ## Cache
 
@@ -241,11 +248,11 @@ the body means you're done. The bare prefix without the token must return
 
 Verified live on **2026-04-26**:
 
-| Store | Method | Status |
-|---|---|---|
-| Publix | `services.publix.com/api/v4/savings` direct (per `PUBLIX_STORE_ID`) | Working — ~600 items, <1s |
-| Aldi | Playwright + GraphQL `Items` observation | Working — 178 items, ~30s. Drives the "Shop Now" CTA into the catalog and observes the `Items` GraphQL responses as products lazy-load. |
-| Lidl | Playwright + product cards | Working — ~70 items, ~5s |
+| Store  | Method                                                              | Status                                                                                                                                  |
+| ------ | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Publix | `services.publix.com/api/v4/savings` direct (per `PUBLIX_STORE_ID`) | Working — ~600 items, <1s                                                                                                               |
+| Aldi   | Playwright + GraphQL `Items` observation                            | Working — 178 items, ~30s. Drives the "Shop Now" CTA into the catalog and observes the `Items` GraphQL responses as products lazy-load. |
+| Lidl   | Playwright + product cards                                          | Working — ~70 items, ~5s                                                                                                                |
 
 When a scraper breaks, the dispatcher returns a clear error for that store and
 keeps the others working — `get_all_deals` is partial-success by design.

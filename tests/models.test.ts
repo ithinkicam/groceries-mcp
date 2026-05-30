@@ -1,5 +1,4 @@
-import { test } from "node:test";
-import assert from "node:assert/strict";
+import { expect, test } from "vitest";
 import {
   StoreDealsSchema,
   adWeekStarting,
@@ -9,65 +8,65 @@ import {
 
 test("adWeekStarting rounds back to Wednesday", () => {
   // 2026-04-25 is a Saturday; the Wednesday before is 2026-04-22.
-  assert.equal(adWeekStarting(new Date("2026-04-25T12:00:00Z")), "2026-04-22");
+  expect(adWeekStarting(new Date("2026-04-25T12:00:00Z"))).toBe("2026-04-22");
   // 2026-04-22 is the Wednesday itself; should return same date.
-  assert.equal(adWeekStarting(new Date("2026-04-22T12:00:00Z")), "2026-04-22");
+  expect(adWeekStarting(new Date("2026-04-22T12:00:00Z"))).toBe("2026-04-22");
   // 2026-04-21 is Tuesday; previous Wednesday is 2026-04-15.
-  assert.equal(adWeekStarting(new Date("2026-04-21T12:00:00Z")), "2026-04-15");
+  expect(adWeekStarting(new Date("2026-04-21T12:00:00Z"))).toBe("2026-04-15");
 });
 
 test("categorize buckets common items correctly", () => {
-  assert.equal(categorize("Chicken thighs, BOGO"), "protein");
-  assert.equal(categorize("Brussels sprouts, $2.99/lb"), "produce");
-  assert.equal(categorize("Sargento shredded cheese"), "dairy");
-  assert.equal(categorize("Rummo pasta, 1 lb"), "pantry");
-  assert.equal(categorize("Edy's ice cream"), "frozen");
-  assert.equal(categorize("Toilet paper"), "other");
+  expect(categorize("Chicken thighs, BOGO")).toBe("protein");
+  expect(categorize("Brussels sprouts, $2.99/lb")).toBe("produce");
+  expect(categorize("Sargento shredded cheese")).toBe("dairy");
+  expect(categorize("Rummo pasta, 1 lb")).toBe("pantry");
+  expect(categorize("Edy's ice cream")).toBe("frozen");
+  expect(categorize("Toilet paper")).toBe("other");
 });
 
 test("categorize handles fruit varieties beyond the basics", () => {
-  assert.equal(categorize("Black or Red Plums"), "produce");
-  assert.equal(categorize("Cotton Candy Grapes"), "produce");
-  assert.equal(categorize("Strawberries"), "produce");
-  assert.equal(categorize("Mangos or Honey Mangos"), "produce");
-  assert.equal(categorize("White Peaches"), "produce");
-  assert.equal(categorize("Pineapple Spears"), "produce");
+  expect(categorize("Black or Red Plums")).toBe("produce");
+  expect(categorize("Cotton Candy Grapes")).toBe("produce");
+  expect(categorize("Strawberries")).toBe("produce");
+  expect(categorize("Mangos or Honey Mangos")).toBe("produce");
+  expect(categorize("White Peaches")).toBe("produce");
+  expect(categorize("Pineapple Spears")).toBe("produce");
 });
 
 test("categorize identifies bakery items", () => {
-  assert.equal(categorize("San Francisco style sourdough loaf"), "bakery");
-  assert.equal(categorize("Specially Selected Hawaiian Brioche Bun"), "bakery");
-  assert.equal(categorize("Croissants, 4 ct"), "bakery");
-  assert.equal(categorize("Plain Bagels"), "bakery");
-  assert.equal(categorize("GreenWise Mini Muffins"), "bakery");
-  assert.equal(categorize("Italian Bread"), "bakery");
+  expect(categorize("San Francisco style sourdough loaf")).toBe("bakery");
+  expect(categorize("Specially Selected Hawaiian Brioche Bun")).toBe("bakery");
+  expect(categorize("Croissants, 4 ct")).toBe("bakery");
+  expect(categorize("Plain Bagels")).toBe("bakery");
+  expect(categorize("GreenWise Mini Muffins")).toBe("bakery");
+  expect(categorize("Italian Bread")).toBe("bakery");
 });
 
 test("categorize routes snacks and non-food items away from produce/bakery", () => {
   // Snacks that incidentally contain produce/bakery keywords go to pantry.
-  assert.equal(categorize("Lay's Potato Chips"), "pantry");
-  assert.equal(categorize("Utz Family Size Potato Chips"), "pantry");
-  assert.equal(categorize("Doritos tortilla chips, nacho cheese"), "pantry");
-  assert.equal(categorize("Jolly Time Popcorn"), "pantry");
-  assert.equal(categorize("Snyder's pretzels"), "pantry");
+  expect(categorize("Lay's Potato Chips")).toBe("pantry");
+  expect(categorize("Utz Family Size Potato Chips")).toBe("pantry");
+  expect(categorize("Doritos tortilla chips, nacho cheese")).toBe("pantry");
+  expect(categorize("Jolly Time Popcorn")).toBe("pantry");
+  expect(categorize("Snyder's pretzels")).toBe("pantry");
   // Non-food items end up as "other" even if they match a fruit/grain name.
-  assert.equal(categorize("LS LIVE IN STYLE City Tote - Cherry"), "other");
-  assert.equal(categorize("Belavi Solar Garden Figurine, Frog"), "other");
-  assert.equal(categorize("Colgate Optic White Toothpaste"), "other");
+  expect(categorize("LS LIVE IN STYLE City Tote - Cherry")).toBe("other");
+  expect(categorize("Belavi Solar Garden Figurine, Frog")).toBe("other");
+  expect(categorize("Colgate Optic White Toothpaste")).toBe("other");
 });
 
 test("isMealRelevant true positives + negatives", () => {
-  assert.equal(isMealRelevant("Chicken breasts $4.99/lb"), true);
-  assert.equal(isMealRelevant("Brussels sprouts"), true);
-  assert.equal(isMealRelevant("Spinach"), true);
-  assert.equal(isMealRelevant("Tide laundry detergent"), false);
+  expect(isMealRelevant("Chicken breasts $4.99/lb")).toBe(true);
+  expect(isMealRelevant("Brussels sprouts")).toBe(true);
+  expect(isMealRelevant("Spinach")).toBe(true);
+  expect(isMealRelevant("Tide laundry detergent")).toBe(false);
   // Produce that used to fall through:
-  assert.equal(isMealRelevant("Black or Red Plums"), true);
-  assert.equal(isMealRelevant("Red Seedless Grapes"), true);
-  assert.equal(isMealRelevant("Pineapple Spears"), true);
+  expect(isMealRelevant("Black or Red Plums")).toBe(true);
+  expect(isMealRelevant("Red Seedless Grapes")).toBe(true);
+  expect(isMealRelevant("Pineapple Spears")).toBe(true);
   // Bakery:
-  assert.equal(isMealRelevant("Sourdough loaf"), true);
-  assert.equal(isMealRelevant("Hawaiian Brioche Bun"), true);
+  expect(isMealRelevant("Sourdough loaf")).toBe(true);
+  expect(isMealRelevant("Hawaiian Brioche Bun")).toBe(true);
 });
 
 test("StoreDealsSchema accepts a well-formed payload", () => {
@@ -91,5 +90,5 @@ test("StoreDealsSchema accepts a well-formed payload", () => {
       other: [],
     },
   });
-  assert.equal(result.success, true);
+  expect(result.success).toBe(true);
 });

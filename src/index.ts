@@ -52,7 +52,9 @@ const PER_STORE_INPUT_SCHEMA = {
   force_refresh: z
     .boolean()
     .optional()
-    .describe("Bypass the cache and re-scrape even if a snapshot exists for this week."),
+    .describe(
+      "Bypass the cache and re-scrape even if a snapshot exists for this week.",
+    ),
 };
 
 function registerStoreTool(
@@ -130,7 +132,10 @@ function createServer(): McpServer {
       description:
         "Get this week's deals for every supported store. Partial success: each store either returns a normal deals payload or an error entry; the request as a whole always succeeds.",
       inputSchema: {
-        week_of: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        week_of: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
         force_refresh: z.boolean().optional(),
       },
     },
@@ -213,7 +218,9 @@ function createServer(): McpServer {
         ...(category !== undefined ? { category } : {}),
         ...(keywords !== undefined ? { keywords } : {}),
         ...(store !== undefined ? { stores: [store] } : {}),
-        ...(meal_relevant_only !== undefined ? { mealRelevantOnly: meal_relevant_only } : {}),
+        ...(meal_relevant_only !== undefined
+          ? { mealRelevantOnly: meal_relevant_only }
+          : {}),
         ...(week_of !== undefined
           ? { weekStarting: adWeekStarting(new Date(week_of)) }
           : {}),
@@ -274,19 +281,14 @@ async function runHttp(opts: HttpOptions): Promise<void> {
   // Public path is <prefix>/<token>. Token-as-path-segment is the convention
   // (matches keep-mcp) because claude.ai's connector UI has no field for an
   // Authorization header — the secret has to be embedded in the URL itself.
-  const requiredPath = token
-    ? `${pathPrefix}/${token}`
-    : pathPrefix;
+  const requiredPath = token ? `${pathPrefix}/${token}` : pathPrefix;
 
   const httpServer = http.createServer(async (req, res) => {
     try {
       if (requiredPath) {
         const url = req.url ?? "/";
         const pathOnly = url.split("?")[0] ?? "/";
-        if (
-          pathOnly !== requiredPath &&
-          !pathOnly.startsWith(requiredPath + "/")
-        ) {
+        if (pathOnly !== requiredPath && !pathOnly.startsWith(requiredPath + "/")) {
           res.writeHead(404, { "content-type": "application/json" });
           res.end(JSON.stringify({ error: "Not found" }));
           return;
