@@ -25,6 +25,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:unit": "vitest run tests/models.test.ts tests/dispatcher.test.ts",
+    "prepare": "git config core.hooksPath .githooks",
     "postinstall": "playwright install chromium",
     "typecheck": "tsc --noEmit",
     "repo-hygiene": "vitest run tests/repo-hygiene.test.ts"

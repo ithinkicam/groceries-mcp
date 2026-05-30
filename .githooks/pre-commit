@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+# Auto-format staged files with Prettier, then re-stage them.
+# Keeps commits formatted with zero friction — no manual `npm run format`.
+# Activated via `core.hooksPath` (set by the `prepare` npm script).
+
+# Only touch staged files Prettier understands, ignoring deletions.
+staged=$(git diff --cached --name-only --diff-filter=d)
+[ -z "$staged" ] && exit 0
+
+# Format in place. Prettier picks the supported paths and respects
+# .prettierignore; --list-different reports which files it actually changed.
+changed=$(printf '%s\n' "$staged" | xargs npx prettier --write --list-different 2>/dev/null)
+[ -z "$changed" ] && exit 0
+
+# Re-stage whatever Prettier rewrote so the commit includes the formatting.
+printf '%s\n' "$changed" | xargs git add
+echo "✓ Prettier formatted and re-staged:"
+printf '  %s\n' "$changed"
+
+exit 0

@@ -9,7 +9,13 @@ npm run build          # compile TypeScript → dist/
 npm run dev            # watch mode
 npm test               # run all tests
 npm run typecheck      # type-check without emitting
+npm run format         # auto-format with Prettier
 ```
+
+A Prettier pre-commit hook lives in `.githooks/` and is activated by the
+`prepare` script on `npm install` (it sets `core.hooksPath`). It auto-formats
+staged files with Prettier and re-stages them, so commits stay formatted with no
+manual step. To bypass in a pinch: `git commit --no-verify`.
 
 Run a single test file:
 
