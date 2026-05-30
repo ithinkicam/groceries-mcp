@@ -25,7 +25,10 @@ export class LidlScraper implements Scraper {
     const ctx = await getContext();
     const page = await ctx.newPage();
     try {
-      await page.goto(LIDL_URL, { waitUntil: "domcontentloaded", timeout: 45_000 });
+      await page.goto(LIDL_URL, {
+        waitUntil: "domcontentloaded",
+        timeout: 45_000,
+      });
       // Lazy-loaded product grid — scroll a few times.
       for (let i = 0; i < 8; i++) {
         await page.evaluate(() => window.scrollBy(0, 1000));

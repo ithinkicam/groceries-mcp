@@ -69,7 +69,10 @@ export class AldiScraper implements Scraper {
     page.on("response", onResponse);
 
     try {
-      await page.goto(ALDI_URL, { waitUntil: "domcontentloaded", timeout: 45_000 });
+      await page.goto(ALDI_URL, {
+        waitUntil: "domcontentloaded",
+        timeout: 45_000,
+      });
       await page.waitForTimeout(6_000);
 
       const cta = page.locator('a:has-text("Shop Now")').first();

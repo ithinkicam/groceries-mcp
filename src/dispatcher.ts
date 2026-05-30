@@ -66,7 +66,11 @@ export interface FindDealsResult {
 }
 
 function flatten(deals: StoreDeals): DealItem[] {
-  return [...deals.deals.bogos, ...deals.deals.sale_items, ...deals.deals.other];
+  return [
+    ...deals.deals.bogos,
+    ...deals.deals.sale_items,
+    ...deals.deals.other,
+  ];
 }
 
 export async function findDealsAcrossStores(
@@ -84,7 +88,9 @@ export async function findDealsAcrossStores(
       const data = await getDeals({
         store,
         weekStarting: week,
-        ...(opts.forceRefresh !== undefined ? { forceRefresh: opts.forceRefresh } : {}),
+        ...(opts.forceRefresh !== undefined
+          ? { forceRefresh: opts.forceRefresh }
+          : {}),
       });
       itemsByStore[store] = flatten(data);
     } catch (err) {

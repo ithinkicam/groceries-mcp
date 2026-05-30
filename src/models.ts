@@ -274,7 +274,9 @@ export function categorize(text: string): DealCategory {
     return "produce";
   }
   if (
-    /(frozen|pizza|wontons|dumplings|edamame|ice cream|ice-cream|sorbet|gelato)/.test(t)
+    /(frozen|pizza|wontons|dumplings|edamame|ice cream|ice-cream|sorbet|gelato)/.test(
+      t,
+    )
   ) {
     return "frozen";
   }
