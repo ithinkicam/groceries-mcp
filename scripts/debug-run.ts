@@ -13,7 +13,9 @@ const store = process.argv[2];
 const noCache = process.argv.includes("--no-cache");
 
 if (!store) {
-  console.error(`Usage: debug-run <store> [--no-cache]\nStores: ${listStores().join(", ")}`);
+  console.error(
+    `Usage: debug-run <store> [--no-cache]\nStores: ${listStores().join(", ")}`,
+  );
   process.exit(1);
 }
 
@@ -24,7 +26,9 @@ if (!stores.includes(store as (typeof stores)[number])) {
 }
 
 const week = adWeekStarting();
-console.log(`Scraping ${store} for week of ${week}${noCache ? " (forcing refresh)" : ""}...`);
+console.log(
+  `Scraping ${store} for week of ${week}${noCache ? " (forcing refresh)" : ""}...`,
+);
 const t0 = Date.now();
 
 try {
@@ -34,9 +38,7 @@ try {
   });
   const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
   const total =
-    deals.deals.bogos.length +
-    deals.deals.sale_items.length +
-    deals.deals.other.length;
+    deals.deals.bogos.length + deals.deals.sale_items.length + deals.deals.other.length;
   const mealRelevant =
     deals.deals.bogos.filter((d) => d.meal_relevant).length +
     deals.deals.sale_items.filter((d) => d.meal_relevant).length +

@@ -1,10 +1,6 @@
 import { z } from "zod";
 
-export const StoreNameSchema = z.enum([
-  "publix",
-  "aldi",
-  "lidl",
-]);
+export const StoreNameSchema = z.enum(["publix", "aldi", "lidl"]);
 export type StoreName = z.infer<typeof StoreNameSchema>;
 
 export const STORE_DISPLAY_NAMES: Record<StoreName, string> = {
@@ -50,7 +46,9 @@ export type DealsBucket = z.infer<typeof DealsBucketSchema>;
 export const StoreDealsSchema = z.object({
   store: z.string(),
   source: z.string().describe("URL the data came from."),
-  fetched_at: z.string().describe("ISO 8601 timestamp of when this snapshot was scraped."),
+  fetched_at: z
+    .string()
+    .describe("ISO 8601 timestamp of when this snapshot was scraped."),
   /** Wednesday of the ad week this snapshot represents (YYYY-MM-DD). */
   week_starting: z.string(),
   deals: DealsBucketSchema,
@@ -64,7 +62,7 @@ const StoreErrorSchema = z.object({
 });
 export type StoreError = z.infer<typeof StoreErrorSchema>;
 
-const AllDealsResultSchema = z.object({
+export const AllDealsResultSchema = z.object({
   week_starting: z.string(),
   results: z.record(z.string(), z.union([StoreDealsSchema, StoreErrorSchema])),
 });
@@ -87,37 +85,160 @@ export function adWeekStarting(date = new Date()): string {
 
 export const MEAL_RELEVANT_KEYWORDS = [
   // Proteins
-  "chicken", "beef", "pork", "steak", "turkey", "salmon", "shrimp", "seafood",
-  "fish", "tilapia", "cod", "tuna", "sausage", "bacon", "ground", "tenderloin",
-  "ribeye", "sirloin", "filet", "lamb", "guanciale", "pancetta", "prosciutto",
+  "chicken",
+  "beef",
+  "pork",
+  "steak",
+  "turkey",
+  "salmon",
+  "shrimp",
+  "seafood",
+  "fish",
+  "tilapia",
+  "cod",
+  "tuna",
+  "sausage",
+  "bacon",
+  "ground",
+  "tenderloin",
+  "ribeye",
+  "sirloin",
+  "filet",
+  "lamb",
+  "guanciale",
+  "pancetta",
+  "prosciutto",
   // Produce
-  "apple", "orange", "banana", "tomato", "onion", "potato", "lettuce",
-  "spinach", "salad", "pepper", "avocado", "berry", "berries", "lemon",
-  "lime", "garlic", "celery", "carrot", "broccoli", "mushroom", "cabbage",
-  "kale", "asparagus", "zucchini", "squash", "cucumber", "ginger", "herbs",
-  "brussels", "sprout",
-  "cilantro", "parsley", "basil", "scallion", "leek", "shallot",
-  "plum", "grape", "peach", "pear", "mango", "pineapple", "cherry", "cherries",
-  "kiwi", "melon", "watermelon", "cantaloupe", "honeydew", "nectarine",
-  "fig", "papaya", "tangerine", "clementine", "grapefruit", "coconut",
-  "olive", "eggplant", "beet", "radish", "fennel", "artichoke", "romaine",
-  "arugula", "sweet potato", "pomegranate", "persimmon", "okra", "cauliflower",
+  "apple",
+  "orange",
+  "banana",
+  "tomato",
+  "onion",
+  "potato",
+  "lettuce",
+  "spinach",
+  "salad",
+  "pepper",
+  "avocado",
+  "berry",
+  "berries",
+  "lemon",
+  "lime",
+  "garlic",
+  "celery",
+  "carrot",
+  "broccoli",
+  "mushroom",
+  "cabbage",
+  "kale",
+  "asparagus",
+  "zucchini",
+  "squash",
+  "cucumber",
+  "ginger",
+  "herbs",
+  "brussels",
+  "sprout",
+  "cilantro",
+  "parsley",
+  "basil",
+  "scallion",
+  "leek",
+  "shallot",
+  "plum",
+  "grape",
+  "peach",
+  "pear",
+  "mango",
+  "pineapple",
+  "cherry",
+  "cherries",
+  "kiwi",
+  "melon",
+  "watermelon",
+  "cantaloupe",
+  "honeydew",
+  "nectarine",
+  "fig",
+  "papaya",
+  "tangerine",
+  "clementine",
+  "grapefruit",
+  "coconut",
+  "olive",
+  "eggplant",
+  "beet",
+  "radish",
+  "fennel",
+  "artichoke",
+  "romaine",
+  "arugula",
+  "sweet potato",
+  "pomegranate",
+  "persimmon",
+  "okra",
+  "cauliflower",
   "green bean",
   // Bakery products / sweets that double as meal-planning targets
-  "cake", "pie",
+  "cake",
+  "pie",
   // Dairy
-  "cheese", "milk", "yogurt", "butter", "cream", "egg", "ricotta", "mozzarella",
-  "parmesan", "pecorino", "feta",
+  "cheese",
+  "milk",
+  "yogurt",
+  "butter",
+  "cream",
+  "egg",
+  "ricotta",
+  "mozzarella",
+  "parmesan",
+  "pecorino",
+  "feta",
   // Bakery
-  "bread", "loaf", "baguette", "ciabatta", "sourdough", "focaccia",
-  "croissant", "brioche", "bagel", "biscuit", "muffin", "scone", "roll", "bun",
-  "pita", "naan", "tortilla",
+  "bread",
+  "loaf",
+  "baguette",
+  "ciabatta",
+  "sourdough",
+  "focaccia",
+  "croissant",
+  "brioche",
+  "bagel",
+  "biscuit",
+  "muffin",
+  "scone",
+  "roll",
+  "bun",
+  "pita",
+  "naan",
+  "tortilla",
   // Pantry / cooking
-  "pasta", "sauce", "rice", "olive oil", "flour", "sugar", "honey",
-  "vinegar", "broth", "stock", "bean", "lentil", "chickpea", "mayonnaise",
-  "mustard", "cereal", "oatmeal", "coffee", "tea", "noodle",
+  "pasta",
+  "sauce",
+  "rice",
+  "olive oil",
+  "flour",
+  "sugar",
+  "honey",
+  "vinegar",
+  "broth",
+  "stock",
+  "bean",
+  "lentil",
+  "chickpea",
+  "mayonnaise",
+  "mustard",
+  "cereal",
+  "oatmeal",
+  "coffee",
+  "tea",
+  "noodle",
   // Frozen meal components
-  "pizza", "frozen", "wontons", "dumplings", "edamame",
+  "pizza",
+  "frozen",
+  "wontons",
+  "dumplings",
+  "edamame",
 ];
 
 export function categorize(text: string): DealCategory {
@@ -138,22 +259,44 @@ export function categorize(text: string): DealCategory {
   ) {
     return "other";
   }
-  if (/(chicken|beef|pork|steak|turkey|salmon|shrimp|fish|sausage|bacon|tenderloin|ground|lamb|tuna|cod|tilapia|seafood|guanciale|pancetta|prosciutto)/.test(t)) {
+  if (
+    /(chicken|beef|pork|steak|turkey|salmon|shrimp|fish|sausage|bacon|tenderloin|ground|lamb|tuna|cod|tilapia|seafood|guanciale|pancetta|prosciutto)/.test(
+      t,
+    )
+  ) {
     return "protein";
   }
-  if (/(apple|orange|banana|tomato|onion|potato|lettuce|spinach|pepper|avocado|berr(y|ies)|lemon|lime|garlic|celery|carrot|broccoli|mushroom|cabbage|kale|asparagus|zucchini|squash|cucumber|salad|herb|cilantro|parsley|basil|scallion|leek|shallot|ginger|brussels|sprout|plum|grape|peach|pear|mango|pineapple|cherr(y|ies)|kiwi|melon|nectarine|fig|papaya|tangerine|clementine|grapefruit|eggplant|beet|radish|fennel|artichoke|romaine|arugula|pomegranate|persimmon|okra|cauliflower|green bean)/.test(t)) {
+  if (
+    /(apple|orange|banana|tomato|onion|potato|lettuce|spinach|pepper|avocado|berr(y|ies)|lemon|lime|garlic|celery|carrot|broccoli|mushroom|cabbage|kale|asparagus|zucchini|squash|cucumber|salad|herb|cilantro|parsley|basil|scallion|leek|shallot|ginger|brussels|sprout|plum|grape|peach|pear|mango|pineapple|cherr(y|ies)|kiwi|melon|nectarine|fig|papaya|tangerine|clementine|grapefruit|eggplant|beet|radish|fennel|artichoke|romaine|arugula|pomegranate|persimmon|okra|cauliflower|green bean)/.test(
+      t,
+    )
+  ) {
     return "produce";
   }
-  if (/(frozen|pizza|wontons|dumplings|edamame|ice cream|ice-cream|sorbet|gelato)/.test(t)) {
+  if (
+    /(frozen|pizza|wontons|dumplings|edamame|ice cream|ice-cream|sorbet|gelato)/.test(t)
+  ) {
     return "frozen";
   }
-  if (/(croissant|baguette|ciabatta|sourdough|focaccia|brioche|bagel|biscuit|muffin|scone|pita|naan|loaf|bakery|cinnamon roll|hawaiian roll|dinner roll|kaiser roll|hoagie roll|sub roll|hot dog bun|hamburger bun|sandwich bun|breadstick|english muffin|tortilla|bread)/.test(t)) {
+  if (
+    /(croissant|baguette|ciabatta|sourdough|focaccia|brioche|bagel|biscuit|muffin|scone|pita|naan|loaf|bakery|cinnamon roll|hawaiian roll|dinner roll|kaiser roll|hoagie roll|sub roll|hot dog bun|hamburger bun|sandwich bun|breadstick|english muffin|tortilla|bread)/.test(
+      t,
+    )
+  ) {
     return "bakery";
   }
-  if (/(cheese|milk|yogurt|butter|cream|egg|ricotta|mozzarella|parmesan|pecorino|feta)/.test(t)) {
+  if (
+    /(cheese|milk|yogurt|butter|cream|egg|ricotta|mozzarella|parmesan|pecorino|feta)/.test(
+      t,
+    )
+  ) {
     return "dairy";
   }
-  if (/(pasta|sauce|rice|olive oil|flour|sugar|honey|vinegar|broth|stock|bean|lentil|chickpea|mayonnaise|mustard|cereal|oatmeal|coffee|tea|noodle|spice|seasoning)/.test(t)) {
+  if (
+    /(pasta|sauce|rice|olive oil|flour|sugar|honey|vinegar|broth|stock|bean|lentil|chickpea|mayonnaise|mustard|cereal|oatmeal|coffee|tea|noodle|spice|seasoning)/.test(
+      t,
+    )
+  ) {
     return "pantry";
   }
   return "other";
