@@ -18,12 +18,9 @@
     "start:stdio": "node dist/index.js --transport stdio",
     "start:http": "node dist/index.js --transport http",
     "dev": "tsc --watch",
-    "debug:run": "node --import tsx scripts/debug-run.ts",
-    "find-publix-store": "node --import tsx scripts/find-publix-store.ts",
     "test": "node --test --import tsx tests/**/*.test.ts",
     "postinstall": "playwright install chromium firefox && camoufox-js fetch",
-    "typecheck": "tsc --noEmit",
-    "debug:search": "node --import tsx scripts/debug-search.ts"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.18.0",
