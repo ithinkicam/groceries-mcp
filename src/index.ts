@@ -107,8 +107,10 @@ function createServer(): McpServer {
       inputSchema: {},
     },
     async () => {
+      const dealStores = listStores();
       const payload = {
-        deal_stores: listStores(),
+        stores: dealStores,
+        deal_stores: dealStores,
         search_stores: listSearchStores(),
       };
       return {
